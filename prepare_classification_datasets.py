@@ -81,8 +81,8 @@ def print_set_info(setname=str, label_name=str, db=pd.DataFrame, counts=False):
 
 
 def print_all_sets(db=pd.DataFrame, counts=False):
-    for i, d in enumerate(mc.DATASETS_ALL):
-        print_set_info(d, mc.DATASET_LABELS[i], db, counts)
+    for dataset in mc.CUSTOM_DATASETS_INFO:
+        print_set_info(dataset["db_col"], dataset["label_col"], db, counts)
 
 
 def training_sets_full(db=pd.DataFrame):
@@ -291,8 +291,8 @@ if __name__ == "__main__":
     print(db[mc.LABEL_INDI].value_counts())
     print(db["label"].value_counts())
 
-    for col_name in mc.DATASETS_ALL:
-        db[col_name] = False
+    for dataset in mc.CUSTOM_DATASETS_INFO:
+        db[dataset["label_col"]] = False
 
     # Merge duplicate sites
     for site in db.site.unique():

@@ -28,7 +28,6 @@ TESTING_DATASETS_IN_SAMPLE = [
 DATASETS_IN_SAMPLE = (
     TRAINING_DATASETS + TESTING_DATASETS_IN_SAMPLE[:2] + TESTING_DATASETS_IN_SAMPLE[3:]
 )
-DATASETS_ALL = TRAINING_DATASETS + TESTING_DATASETS_IN_SAMPLE
 
 TRAIN_DATASET_INDEXES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 TEST_DATASET_INDEXES = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
@@ -49,11 +48,8 @@ CLASS_MAP_INDIVIDUAL = {
     "MUSTELID": 12,
     "GOAT": 13,
 }
-
 CLASS_MAP_GROUPED = {"EMPTY": 0, "NATIVE": 1, "INVASIVE": 2}
-
 CLASSES_MAP_PRJ_SPCF = {"EMPTY": 0, "BIRD": 1, "HEDGEHOG": 2}
-
 CLASSES_MAP_W_NVL_SPS = {
     "EMPTY": 0,
     "BIRD": 1,
@@ -78,11 +74,8 @@ CLASSES_INDIVIDUAL = [
     "MUSTELID",
     "GOAT",
 ]
-
 CLASSES_GROUPED = ["EMPTY", "NATIVE", "INVASIVE"]
-
 CLASSES_PRJ_SPCF = ["EMPTY", "BIRD", "HEDGEHOG"]
-
 CLASSES_W_NVL_SPS = ["EMPTY", "BIRD", "HEDGEHOG", "RAT", "UNCLASSIFIABLE"]
 
 LABEL_INDI = "label_indi"
@@ -311,80 +304,6 @@ CUSTOM_DATASETS_INFO = [
     },
 ]
 
-CLASS_MAPS = [
-    CLASS_MAP_GROUPED,  # 'train_a_grpd_all',
-    CLASS_MAP_INDIVIDUAL,  # 'train_b_indi_all',
-    CLASS_MAP_GROUPED,  # 'train_c_grpd_10',
-    CLASS_MAP_GROUPED,  # 'train_d_grpd_100',
-    CLASS_MAP_GROUPED,  # 'train_e_grpd_1000',
-    CLASS_MAP_INDIVIDUAL,  # 'train_f_indi_10',
-    CLASS_MAP_INDIVIDUAL,  # 'train_g_indi_100',
-    CLASS_MAP_INDIVIDUAL,  # 'train_h_indi_1000',
-    CLASSES_MAP_PRJ_SPCF,  # 'train_i_lg_prj',
-    CLASSES_MAP_PRJ_SPCF,  # 'train_j_sm_prj'
-    CLASS_MAP_GROUPED,  # 'test_a_grpd_all_10_100_1000',
-    CLASS_MAP_INDIVIDUAL,  # 'test_b_indi_all_10_100_1000_biome_c',
-    CLASS_MAP_INDIVIDUAL,  # 'test_c_indi_biome_ots',
-    CLASSES_MAP_PRJ_SPCF,  # 'test_d_lg_wo_nvl_sps_lg_prj_spcf',
-    CLASSES_MAP_PRJ_SPCF,  # 'test_e_lg_w_nvl_sps',
-    CLASSES_MAP_PRJ_SPCF,  # 'test_f_sm_wo_nvl_sps_sm_prj_spcf',
-    CLASSES_MAP_PRJ_SPCF,  # 'test_g_sm_w_nvl_sps'
-]
-
-
-# todo check if used
-TRAIN_TEST_COMB_MODELS = [
-    {"name": "train_a_grpd_all_test_a_grpd_all_10_100_1000", "train": 0, "test": 0},
-    {
-        "name": "train_b_indi_all_test_b_indi_all_10_100_1000_biome_c",
-        "train": 1,
-        "test": 1,
-    },
-    {"name": "train_b_indi_all_test_c_indi_biome_ots", "train": 1, "test": 2},
-    {"name": "train_c_grpd_10_test_a_grpd_all_10_100_1000", "train": 2, "test": 0},
-    {"name": "train_d_grpd_100_test_a_grpd_all_10_100_1000", "train": 3, "test": 0},
-    {"name": "train_e_grpd_1000_test_a_grpd_all_10_100_1000", "train": 4, "test": 0},
-    {
-        "name": "train_f_indi_10_test_b_indi_all_10_100_1000_biome_c",
-        "train": 5,
-        "test": 1,
-    },
-    {
-        "name": "train_g_indi_100_test_b_indi_all_10_100_1000_biome_c",
-        "train": 6,
-        "test": 1,
-    },
-    {
-        "name": "train_h_indi_1000_test_b_indi_all_10_100_1000_biome_c",
-        "train": 7,
-        "test": 1,
-    },
-    {"name": "train_i_lg_prj_test_d_lg_wo_nvl_sps_lg_prj_spcf", "train": 8, "test": 3},
-    {"name": "train_i_lg_prj_test_e_lg_w_nvl_sps", "train": 8, "test": 4},
-    {"name": "train_j_sm_prj_test_f_sm_wo_nvl_sps_sm_prj_spcf", "train": 9, "test": 5},
-    {"name": "train_j_sm_prj_test_g_sm_w_nvl_sps", "train": 9, "test": 6},
-]
-
-# todo check use
-DATASET_LABELS = [
-    LABEL_GRPD,  # 'train_a_grpd_all',
-    LABEL_INDI,  # 'train_b_indi_all',
-    LABEL_GRPD,  # 'train_c_grpd_10',
-    LABEL_GRPD,  # 'train_d_grpd_100',
-    LABEL_GRPD,  # 'train_e_grpd_1000',
-    LABEL_INDI,  # 'train_f_indi_10',
-    LABEL_INDI,  # 'train_g_indi_100',
-    LABEL_INDI,  # 'train_h_indi_1000',
-    LABEL_INDI,  # 'train_i_lg_prj',
-    LABEL_INDI,  # 'train_j_sm_prj'
-    LABEL_GRPD,  # 'test_a_grpd_all_10_100_1000',
-    LABEL_INDI,  # 'test_b_indi_all_10_100_1000_biome_c',
-    LABEL_INDI,  # 'test_c_indi_biome_ots',
-    LABEL_INDI,  # 'test_d_lg_wo_nvl_sps_lg_prj_spcf',
-    LABEL_INDI,  # 'test_e_lg_w_nvl_sps',
-    LABEL_INDI,  # 'test_f_sm_wo_nvl_sps_sm_prj_spcf',
-    LABEL_INDI,  # 'test_g_sm_w_nvl_sps'
-]
 
 OUT_OF_SAMPLE_TEST_SITES_ALL = [
     "040a",
@@ -398,6 +317,7 @@ OUT_OF_SAMPLE_TEST_SITES_ALL = [
     "039b",
     "006a",
 ]
+
 # The 10 sites with most hedgehogs used in publication
 HEDGEHOG_SITES_FROM_PAPER = [
     "040b",
@@ -412,46 +332,6 @@ HEDGEHOG_SITES_FROM_PAPER = [
     "038a",
 ]
 
-
-CLASS_MAPS = [
-    CLASS_MAP_GROUPED,  # 'train_a_grpd_all',
-    CLASS_MAP_INDIVIDUAL,  # 'train_b_indi_all',
-    CLASS_MAP_GROUPED,  # 'train_c_grpd_10',
-    CLASS_MAP_GROUPED,  # 'train_d_grpd_100',
-    CLASS_MAP_GROUPED,  # 'train_e_grpd_1000',
-    CLASS_MAP_INDIVIDUAL,  # 'train_f_indi_10',
-    CLASS_MAP_INDIVIDUAL,  # 'train_g_indi_100',
-    CLASS_MAP_INDIVIDUAL,  # 'train_h_indi_1000',
-    CLASSES_MAP_PRJ_SPCF,  # 'train_i_lg_prj',
-    CLASSES_MAP_PRJ_SPCF,  # 'train_j_sm_prj'
-    CLASS_MAP_GROUPED,  # 'test_a_grpd_all_10_100_1000',
-    CLASS_MAP_INDIVIDUAL,  # 'test_b_indi_all_10_100_1000_biome_c',
-    CLASS_MAP_INDIVIDUAL,  # 'test_c_indi_biome_ots',
-    CLASSES_MAP_PRJ_SPCF,  # 'test_d_lg_wo_nvl_sps_lg_prj_spcf',
-    CLASSES_MAP_PRJ_SPCF,  # 'test_e_lg_w_nvl_sps',
-    CLASSES_MAP_PRJ_SPCF,  # 'test_f_sm_wo_nvl_sps_sm_prj_spcf',
-    CLASSES_MAP_PRJ_SPCF,  # 'test_g_sm_w_nvl_sps'
-]
-
-
-CLASS_LISTS = [
-    CLASSES_INDIVIDUAL,
-    CLASSES_INDIVIDUAL,
-    CLASSES_GROUPED,
-    CLASSES_GROUPED,
-    CLASSES_INDIVIDUAL,
-    CLASSES_INDIVIDUAL,
-    CLASSES_INDIVIDUAL,
-    CLASSES_INDIVIDUAL,
-    CLASSES_INDIVIDUAL,
-    CLASSES_INDIVIDUAL,
-    CLASSES_GROUPED,
-    CLASSES_GROUPED,
-    CLASSES_GROUPED,
-    CLASSES_GROUPED,
-    CLASSES_GROUPED,
-    CLASSES_GROUPED,
-]
 
 CROP_SIZE = 224
 CROP_SIZE_W_PADDING = CROP_SIZE + 20
@@ -509,4 +389,6 @@ TRAINING_LOSS_FIG_FILE = "./training/training_loss.png"
 DEFAULT_DETECTION_CSV_FILE = "./data/detections/wellington_camera_traps_detections.csv"
 DEFAULT_OUTPUT_DIR_TRAIN_TEST_DF_CSV = "./training/"
 DEFAULT_TRAIN_TEST_CSV_FILE_NAME = "training_testing_datasets.csv"
-DEFAULT_TRAIN_TEST_CSV_FILE = os.path.join(DEFAULT_OUTPUT_DIR_TRAIN_TEST_DF_CSV, DEFAULT_TRAIN_TEST_CSV_FILE_NAME)
+DEFAULT_TRAIN_TEST_CSV_FILE = os.path.join(
+    DEFAULT_OUTPUT_DIR_TRAIN_TEST_DF_CSV, DEFAULT_TRAIN_TEST_CSV_FILE_NAME
+)

@@ -172,6 +172,7 @@ MODEL_NAMES_LEG_Q4 = {
     "train_j_sm_prj_test_f_sm_wo_nvl_sps_sm_prj_spcf": "Small",
 }
 
+
 def get_model_hatches(model_list):
     if model_list == MODELS_Q1:
         return MODELS_Q1_CLASS_HATCHES
@@ -182,7 +183,7 @@ def get_model_hatches(model_list):
     elif model_list == MODELS_Q4:
         return MODELS_Q4_HATCHES
 
-# todo organize these
+
 FIG_SIZE_MULTIPLIER = 7
 
 PLOT_BACKGROUND_COLOR = "whitesmoke"
@@ -208,7 +209,6 @@ LEG_HANDLE_LENGTH_B = 4
 LEG_PATCH_HEIGHT = 22
 LEG_Y_OFFSET = -6
 
-# todo check all uses
 MARKER_SIZE = 150
 MARKER_SIZE_3x1_PLT = 400
 MARKER_SIZE_2x1_PLT = MARKER_SIZE_3x1_PLT
@@ -229,6 +229,7 @@ LEGEND_PATCH_EDGE_COLOR = "white"
 # Functions
 
 # helpers
+
 
 def configure_matplt(sub_plt_cnt=int):
     if sub_plt_cnt == 2:
@@ -361,6 +362,7 @@ def stat_by_training_images(
         if limits[3] is not None:
             ax.set_ylim(bottom=limits[3])
 
+
 def adjust_legend(legend=plt.legend, height=LEG_PATCH_HEIGHT, set_y=LEG_Y_OFFSET):
     legend._legend_box.align = "left"
 
@@ -400,6 +402,7 @@ def generate_and_adjust_legend(
 
     # adjust legend
     adjust_legend(leg, height=height)
+
 
 def autolabel(
     rects,
@@ -458,6 +461,7 @@ def autolabel(
             va="bottom",
             bbox=text_props,
         )
+
 
 def draw_legend_group(patches, model_names, legend_patches, leg_items, label, indexes):
     patch = Patch(
@@ -559,6 +563,7 @@ def draw_q4_legend(df=pd.DataFrame, ax=plt.axes, model_names=list):
 
 
 # figures
+
 
 def figure_stats_v_invs_natv_balance_in_train_df(df=pd.DataFrame, png_path=str):
     configure_matplt(3)

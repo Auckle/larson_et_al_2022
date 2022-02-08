@@ -114,7 +114,7 @@ def img_crop_detection(img_file=str, output_file=str, bbox=list):
 
     # Crop image
     cropped_img = image[
-        crop_box[1]: crop_box[1] + crop_box[3], crop_box[0]: crop_box[0] + crop_box[2]
+        crop_box[1] : crop_box[1] + crop_box[3], crop_box[0] : crop_box[0] + crop_box[2]
     ]
 
     output_img_file = os.path.join(OUTPUT_DIR, output_file)

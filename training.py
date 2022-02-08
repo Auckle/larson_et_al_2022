@@ -581,9 +581,7 @@ if __name__ == "__main__":
     # select device use gpu if available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    datasets_indexes = (
-        mc.TEST_DATASET_INDEXES if EVALUATE else mc.TRAIN_DATASET_INDEXES
-    )
+    datasets_indexes = mc.TEST_DATASET_INDEXES if EVALUATE else mc.TRAIN_DATASET_INDEXES
     if EVALUATE:
         evaluation_output_df = pd.DataFrame(columns=mc.PERFORMANCE_DF_COLS)
 
