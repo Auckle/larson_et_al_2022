@@ -16,7 +16,7 @@ All scripts use Python 3+ with [Anaconda Individual Edition](https://www.anacond
 ## Use
 
 ### 1. Clone this Repo
-1. Clone this repo in to your workspace
+1. Clone this repo in to your workspace.
 ```
 git clone https://github.com/Auckle/larson_et_al_2022.git
 ```
@@ -39,7 +39,7 @@ wget -c -P ./data/raw https://lilablobssc.blob.core.windows.net/wellingtoncamera
 ### 3. Run Microsoft's Megadetector
 Download and use [Microsoft's Megadetector model](https://github.com/microsoft/CameraTraps/blob/main/megadetector.md)[[2]](#references) to detect animals in the Wellington Camera Traps images, and generate an output file containing the boundary box coordinates of detected animals.
 
-1. Download the megadetector.pb model to the megadetector directory
+1. Download the megadetector.pb model to the megadetector directory.
 ```
 wget -c -P ./megadetector https://lilablobssc.blob.core.windows.net/models/camera_traps/megadetector/megadetector_v3.pb
 ```
@@ -50,7 +50,7 @@ git clone https://github.com/Microsoft/cameratraps megadetector
 git clone https://github.com/Microsoft/ai4eutils megadetector
 ```
 
-3. Add Microsoft's repos to your Python path
+3. Add Microsoft's repos to your Python path.
 ```
 export PYTHONPATH=$PYTHONPATH:$PWD/megadetector/cameratraps
 export PYTHONPATH=$PYTHONPATH:$PWD/megadetector/ai4eutils
@@ -78,7 +78,7 @@ python ./megadetector/cameratraps/detection/run_tf_detector_batch.py ./megadetec
 
 More detailed instructions and trouble shooting for using the megadetector can be found [here](https://github.com/microsoft/CameraTraps/blob/main/megadetector.md) and [here](https://github.com/microsoft/CameraTraps#installation).
 
-### 4. Prepare Classification Training and Testing Dataset
+### 4. Prepare Classification Training and Testing Datasets
 Generate and process the classification dataset images, sort them into training and testing datasets, and clean the metadata.
 
 1. Generate the classification dataset images by running the crop_detections.py script to crop the animals from the raw images using the detections generated in step 3. Run the Microsoft's Megadetector. Images labeled as empty according to the Wellington Camera Traps metadata file are cropped using the boundary box coordinates of the previous detection.
@@ -86,19 +86,19 @@ Generate and process the classification dataset images, sort them into training 
 python crop_detections.py ./megadetector/detections.json ./data/raw/wellington_camera_traps.csv ./data/raw ./data/detections
 ```
 
-2. Sort the cropped images into ten training and seven testing datasets using the prepare_classification_datasets.py script
+2. Sort the cropped images into ten training and seven testing datasets using the prepare_classification_datasets.py script.
 ```
 python prepare_classification_datasets.py --detections_csv=./data/detections/wellington_camera_traps_detections.csv --output_csv=training_testing_datasets.csv
 ```
 This script also:
 - Combines images labeled as rat, Norway rat, and ship rat into a single "rat" label.
 - Combines images labeled as hare and rabbit into a single "hare" label.
-- Changes images labeled as nothinghere to "empty".
+- Changes images labeled as nothinghere to "empty."
 - Generates two labels for each image:
     - An individual label specifying the species or group of species.
     - A grouped label where birds are labeled as "native," empty frames are labeled as "empty," and all others (unclassifiable, cat, deer, dog, hare, hedgehog, mouse, mustelid, pig, possum, and rat) are labeled as "invasive."
 
-### 5. Training
+### 5. CNN Training
 Train the ten convolutional neural network models using each of the ten training datasets with the training.py script.
 
 Use the following command to start training fresh.
@@ -116,7 +116,7 @@ Each model uses the ResNet-18 architecture[[3]](#references) pretrained on the i
 Standard data augmentation techniques (random horizontal flipping, cropping, and color jitter) are applied[[8]](#references).
 
 
-### 6. Testing and Evaluating
+### 6. CNN Testing and Evaluation
 Test and evaluate the ten models using the seven testing datasets in 13 combinations using the training.py script with the --evaluate flag.
 ```
 python training.py --training_testing_csv ./training/training_testing_datasets.csv --dataset_dir ./data/detections --evaluate
