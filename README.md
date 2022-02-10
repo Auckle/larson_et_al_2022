@@ -1,61 +1,94 @@
 
 # Assessing Convolutional Neural Network Animal Classification Models for Practical Applications in Wildlife Conservation
 
+All code associated with:
 
-## Requirements and Installation TODO
-All scripts use Python 3+ with [Anaconda Individual Edition](https://www.anaconda.com/products/individual) for environment and package management. All scripts are run from the command line on a linux system.
+Larson, Julia, "Assessing Convolutional Neural Network Animal Classification Models for Practical Applications in Wildlife Conservation" (2021). Master's Theses. 5184.
+DOI: [https://doi.org/10.31979/etd.ysr5-th9v](https://doi.org/10.31979/etd.ysr5-th9v)
+[https://scholarworks.sjsu.edu/etd_theses/5184](https://scholarworks.sjsu.edu/etd_theses/5184)
+
+and any subsequent publications.
+
+
+## Requirements and Installation
+All scripts use Python 3+ with [Anaconda Individual Edition](https://www.anaconda.com/products/individual) for environment and package management. All scripts are run from the command line on a Linux system.
 
 ## Use
 
 ### 1. Clone this Repo
 1. Clone this repo in to your workspace
-``` ```
+```
+git clone 
+```
 2. Change directory into the cloned repo.
-```cd [YOUR_WORKSPACE]/larson_et_al_2022```
+```
+cd [YOUR_WORKSPACE]/larson_et_al_2022
+```
 
 ### 2. Download the Wellington Camera Traps Dataset
-Retreive the [Wellington Camera Traps](https://lila.science/datasets/wellingtoncameratraps)[[1]](#references) dataset and metadata from the Labeled Information Library of Alexandria: Biology and Conservation ([ILA BC](https://lila.science/)) website.
+Retrieve the [Wellington Camera Traps](https://lila.science/datasets/wellingtoncameratraps)[[1]](#references) dataset and metadata from the Labeled Information Library of Alexandria: Biology and Conservation ([ILA BC](https://lila.science/)) website.
 1. Download and unzip the [Wellington Camera Traps](https://lila.science/datasets/wellingtoncameratraps) images into the data/raw directory.
-```wget -c -P ./data/raw https://lilablobssc.blob.core.windows.net/wellingtoncameratraps/wct_images.zip```
+```
+wget -c -P ./data/raw https://lilablobssc.blob.core.windows.net/wellingtoncameratraps/wct_images.zip
+```
 2. Download and unzip the [Wellington Camera Traps](https://lila.science/datasets/wellingtoncameratraps) metadata .csv file into the data/raw directory.
-```wget -c -P ./data/raw https://lilablobssc.blob.core.windows.net/wellingtoncameratraps/wellington_camera_traps.csv.zip```
+```
+wget -c -P ./data/raw https://lilablobssc.blob.core.windows.net/wellingtoncameratraps/wellington_camera_traps.csv.zip
+```
 
 ### 3. Run the Microsoft's Megadetector
 Download and use [Microsoft's Megadetector model]((https://github.com/microsoft/CameraTraps/blob/main/megadetector.md))[[2]](#references) to detect animals in the Wellington Camera Traps images, generate an output file containing the boundary box coordinates of detected animals, and create the classification dataset by using the boundary box coordinates to crop the animals from the original images.
 
 1. Download the megadetector.pb model to the megadetector directory
-```wget -c -P ./megadetector https://lilablobssc.blob.core.windows.net/models/camera_traps/megadetector/megadetector_v3.pb```
+```
+wget -c -P ./megadetector https://lilablobssc.blob.core.windows.net/models/camera_traps/megadetector/megadetector_v3.pb
+```
 
 2. Clone Microsoft's cameratraps and ai4eutils repos into the megadetector directory.
-```git clone https://github.com/Microsoft/cameratraps megadetector```
-```git clone https://github.com/Microsoft/ai4eutils megadetector```
+```
+git clone https://github.com/Microsoft/cameratraps megadetector
+git clone https://github.com/Microsoft/ai4eutils megadetector`
+```
 
 3. Add Microsoft's repos to your Python path
-```export PYTHONPATH=$PYTHONPATH:$PWD/megadetector/cameratraps```
-```export PYTHONPATH=$PYTHONPATH:$PWD/megadetector/ai4eutils```
+```
+export PYTHONPATH=$PYTHONPATH:$PWD/megadetector/cameratraps
+export PYTHONPATH=$PYTHONPATH:$PWD/megadetector/ai4eutils
+```
 
 4. Create the conda virtual environment from microsoft's .yml file. See [here](https://github.com/microsoft/CameraTraps#installation) for more.
-```conda env create --file cameratraps/environment-detector.yml```
+```
+conda env create --file cameratraps/environment-detector.yml
+```
 
 5. Activate the conda environment. See [here](https://github.com/microsoft/CameraTraps#installation) for more.
-```conda activate cameratraps-detector```
+```
+conda activate cameratraps-detector
+```
 
 6. Install additional packages into the Python environment.
-```conda install pandas pytorch torchvision```
+```
+conda install pandas pytorch torchvision
+```
 
 7. Run Microsoft's run_tf_detector_batch.py script to use the Megadetector on the raw Wellington Camera Traps images and generate the detections output file detections.json. See [2. run_tf_detector_batch.py](https://github.com/microsoft/CameraTraps/blob/main/megadetector.md#2-run_tf_detector_batchpy) for more.
-```python ./megadetector/cameratraps/detection/run_tf_detector_batch.py ./megadetector/megadetector_v3.pb ./data/raw ./megadetector/detections.json```
+```
+python ./megadetector/cameratraps/detection/run_tf_detector_batch.py ./megadetector/megadetector_v3.pb ./data/raw ./megadetector/detections.json
+```
 
 More detailed instructions and trouble shooting for using the megadetector can be found [here](https://github.com/microsoft/CameraTraps/blob/main/megadetector.md) and [here](https://github.com/microsoft/CameraTraps#installation).
 
 ### 4. Prepare Classification Training and Testing Dataset
 Generate and process the classification dataset images, sort them into training and testing datasets, and clean the metadata.
 
-1. Generate the classification dataset images by running the crop_detections.py script to crop the animals from the raw images using the detections generated in step 3. Run the Microsoft's Megadetector. Images labeled as empty according to the Wellington Camera Traps metadate file are cropped using the boundary box coordinates of the previous detection.
-```python crop_detections.py ./megadetector/detections.json ./data/raw/wellington_camera_traps.csv ./data/raw ./data/detections```
+1. Generate the classification dataset images by running the crop_detections.py script to crop the animals from the raw images using the detections generated in step 3. Run the Microsoft's Megadetector. Images labeled as empty according to the Wellington Camera Traps metadata file are cropped using the boundary box coordinates of the previous detection.
+```
+python crop_detections.py ./megadetector/detections.json ./data/raw/wellington_camera_traps.csv ./data/raw ./data/detections
+```
 
 2. Sort the cropped images into ten training and seven testing datasets using the prepare_classification_datasets.py script
-```python prepare_classification_datasets.py --detections_csv=./data/detections/wellington_camera_traps_detections.csv --output_csv=training_testing_datasets.csv
+```
+python prepare_classification_datasets.py --detections_csv=./data/detections/wellington_camera_traps_detections.csv --output_csv=training_testing_datasets.csv
 ```
 This script also:
 - Combines images labeled as rat, Norway rat, and ship rat into a single "rat" label.
@@ -89,8 +122,8 @@ Test and evaluate the ten models using the seven testing datasets in 13 combinat
 python training.py --training_testing_csv ./training/training_testing_datasets.csv --dataset_dir ./data/detections --evaluate
 ```
 This script generates predictions for each train/test combination and stores them in a .csv file in the training/predictions directory and a single file called model_performance_results.csv containing the following performance metrics across each train/test combination, and by site and class/label within each train/test combination:
-- Top-1 accuracy: # of times the top prediction is correct / # of images testeded
-- Top-5 accuracy: # of times the correcsmit class is in the top 5 predictions / # of images tested (models with five or fewer output classes will always have top-5 accuracies of 100%)
+- Top-1 accuracy: # of times the top prediction is correct / # of images tested
+- Top-5 accuracy: # of times the correct class is in the top 5 predictions / # of images tested (models with five or fewer output classes will always have top-5 accuracies of 100%)
 - False alarm rate: # of empty or native images labeled as invasive / # of images tested
 - Missed invasive rate: # of invasive images labeled as native or empty / # of invasive images tested
 
@@ -98,10 +131,14 @@ This script generates predictions for each train/test combination and stores the
 Generate the paper figures with the generate_figures.py script.
 
 1. Install additional packages into the Python environment.
-```conda install bokeh seaborn```
+```
+conda install bokeh seaborn
+```
 
 2. Generate figures.
-```python generate_figures.py```
+```
+python generate_figures.py
+```
 
 
 ## Acknowledgement
@@ -112,11 +149,11 @@ Philip Heller, Ph.D.   -  Department of Computer Science
 
 ## References
 
-1. Anton, V., Hartley, S., Geldenhuis, A., & Wittmer, H. U. (2018).  Monitoring the mammalian fauna of urban areas using remote camerasand citizen science. Journal of Urban Ecology,4(1). https://doi.org/10.1093/jue/juy002
+1. Anton, V., Hartley, S., Geldenhuis, A., & Wittmer, H. U. (2018).  Monitoring the mammalian fauna of urban areas using remote cameras and citizen science. Journal of Urban Ecology,4(1). https://doi.org/10.1093/jue/juy002
 
 2. Beery, S., Morris, D., & Yang, S. (2019).  Efficient pipeline for camera trap image review.  arXiv. https://arxiv.org/abs/1907.06772
 
-3. He, K., Zhang, X., Ren, S., & Sun, J. (2016).  Deepresidual learning for image recognition. 2016 IEEE Conference on Computer Visionand Pattern Recognition (CVPR), 770–778. https://doi.org/10.1109/CVPR.2016.90
+3. He, K., Zhang, X., Ren, S., & Sun, J. (2016).  Deep residual learning for image recognition. 2016 IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 770–778. https://doi.org/10.1109/CVPR.2016.90
 
 4. Deng, J., Dong, W., Socher, R., Li, L., Li, K., & Fei-Fei, L.(2009).  ImageNet: A large-scale hierarchical image database. 2009 IEEEConference on Computer Vision and Pattern Recognition, 248–255. https://doi.org/10.1109/CVPR.2009.5206848
 
