@@ -70,8 +70,8 @@ SET_NAMES_TEST_GRPD = ["test_a_grpd_all_10_100_1000", "train_e_grpd_1000"]
 # Functions
 
 
-def print_set_info(setname=str, label_name=str, db=pd.DataFrame, counts=False):
-    a = db.groupby([setname, label_name]).size()
+def print_set_info(set_name=str, label_name=str, db=pd.DataFrame, counts=False):
+    a = db.groupby([set_name, label_name]).size()
     if counts:
         print(a)
     else:
@@ -292,7 +292,7 @@ if __name__ == "__main__":
     print(db["label"].value_counts())
 
     for dataset in mc.CUSTOM_DATASETS_INFO:
-        db[dataset["label_col"]] = False
+        db[dataset["db_col"]] = False
 
     # Merge duplicate sites
     for site in db.site.unique():
