@@ -1,7 +1,7 @@
 
 # Assessing Convolutional Neural Network Animal Classification Models for Practical Applications in Wildlife Conservation
 
-All code associated with:
+All code associated with
 
 Larson, Julia, "Assessing Convolutional Neural Network Animal Classification Models for Practical Applications in Wildlife Conservation" (2021). Master's Theses. 5184.
 DOI: [https://doi.org/10.31979/etd.ysr5-th9v](https://doi.org/10.31979/etd.ysr5-th9v)
@@ -18,7 +18,7 @@ All scripts use Python 3+ with [Anaconda Individual Edition](https://www.anacond
 ### 1. Clone this Repo
 1. Clone this repo in to your workspace
 ```
-git clone 
+git clone https://github.com/Auckle/larson_et_al_2022.git
 ```
 2. Change directory into the cloned repo.
 ```
@@ -26,18 +26,18 @@ cd [YOUR_WORKSPACE]/larson_et_al_2022
 ```
 
 ### 2. Download the Wellington Camera Traps Dataset
-Retrieve the [Wellington Camera Traps](https://lila.science/datasets/wellingtoncameratraps)[[1]](#references) dataset and metadata from the Labeled Information Library of Alexandria: Biology and Conservation ([ILA BC](https://lila.science/)) website.
-1. Download and unzip the [Wellington Camera Traps](https://lila.science/datasets/wellingtoncameratraps) images into the data/raw directory.
+Retrieve the [Wellington Camera Traps](https://lila.science/datasets/wellingtoncameratraps)[[1]](#references) dataset and metadata from the Labeled Information Library of Alexandria: Biology and Conservation (LILA BC) [website](https://lila.science/).
+1. Download and unzip the Wellington Camera Traps images into the data/raw directory.
 ```
 wget -c -P ./data/raw https://lilablobssc.blob.core.windows.net/wellingtoncameratraps/wct_images.zip
 ```
-2. Download and unzip the [Wellington Camera Traps](https://lila.science/datasets/wellingtoncameratraps) metadata .csv file into the data/raw directory.
+2. Download and unzip the Wellington Camera Traps metadata .csv file into the data/raw directory.
 ```
 wget -c -P ./data/raw https://lilablobssc.blob.core.windows.net/wellingtoncameratraps/wellington_camera_traps.csv.zip
 ```
 
-### 3. Run the Microsoft's Megadetector
-Download and use [Microsoft's Megadetector model]((https://github.com/microsoft/CameraTraps/blob/main/megadetector.md))[[2]](#references) to detect animals in the Wellington Camera Traps images, generate an output file containing the boundary box coordinates of detected animals, and create the classification dataset by using the boundary box coordinates to crop the animals from the original images.
+### 3. Run Microsoft's Megadetector
+Download and use [Microsoft's Megadetector model](https://github.com/microsoft/CameraTraps/blob/main/megadetector.md)[[2]](#references) to detect animals in the Wellington Camera Traps images, generate an output file containing the boundary box coordinates of detected animals, and create the classification dataset by using the boundary box coordinates to crop the animals from the original images.
 
 1. Download the megadetector.pb model to the megadetector directory
 ```
@@ -47,7 +47,7 @@ wget -c -P ./megadetector https://lilablobssc.blob.core.windows.net/models/camer
 2. Clone Microsoft's cameratraps and ai4eutils repos into the megadetector directory.
 ```
 git clone https://github.com/Microsoft/cameratraps megadetector
-git clone https://github.com/Microsoft/ai4eutils megadetector`
+git clone https://github.com/Microsoft/ai4eutils megadetector
 ```
 
 3. Add Microsoft's repos to your Python path
@@ -143,9 +143,9 @@ python generate_figures.py
 
 ## Acknowledgement
 I would like to thank my Academic Advisors at San José State University:
-Lynne Trulio, Ph.D.    -  Department of Environmental Studies
-Dustin Mulvaney, Ph.D. -  Department of Environmental Studies
-Philip Heller, Ph.D.   -  Department of Computer Science
+- Lynne Trulio, Ph.D.    -  Department of Environmental Studies
+- Dustin Mulvaney, Ph.D. -  Department of Environmental Studies
+- Philip Heller, Ph.D.   -  Department of Computer Science
 
 ## References
 
