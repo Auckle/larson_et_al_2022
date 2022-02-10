@@ -37,7 +37,7 @@ wget -c -P ./data/raw https://lilablobssc.blob.core.windows.net/wellingtoncamera
 ```
 
 ### 3. Run Microsoft's Megadetector
-Download and use [Microsoft's Megadetector model](https://github.com/microsoft/CameraTraps/blob/main/megadetector.md)[[2]](#references) to detect animals in the Wellington Camera Traps images, generate an output file containing the boundary box coordinates of detected animals, and create the classification dataset by using the boundary box coordinates to crop the animals from the original images.
+Download and use [Microsoft's Megadetector model](https://github.com/microsoft/CameraTraps/blob/main/megadetector.md)[[2]](#references) to detect animals in the Wellington Camera Traps images, and generate an output file containing the boundary box coordinates of detected animals.
 
 1. Download the megadetector.pb model to the megadetector directory
 ```
@@ -93,7 +93,7 @@ python prepare_classification_datasets.py --detections_csv=./data/detections/wel
 This script also:
 - Combines images labeled as rat, Norway rat, and ship rat into a single "rat" label.
 - Combines images labeled as hare and rabbit into a single "hare" label.
-- Changes images labeled as nothinghere to empty.
+- Changes images labeled as nothinghere to "empty".
 - Generates two labels for each image:
     - An individual label specifying the species or group of species.
     - A grouped label where birds are labeled as "native," empty frames are labeled as "empty," and all others (unclassifiable, cat, deer, dog, hare, hedgehog, mouse, mustelid, pig, possum, and rat) are labeled as "invasive."
