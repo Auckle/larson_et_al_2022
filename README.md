@@ -44,16 +44,16 @@ Download and use [Microsoft's Megadetector model](https://github.com/microsoft/C
 wget -c -P ./megadetector https://lilablobssc.blob.core.windows.net/models/camera_traps/megadetector/megadetector_v3.pb
 ```
 
-2. Clone Microsoft's cameratraps and ai4eutils repos into the megadetector directory.
+2. Clone Microsoft's cameratraps and ai4eutils repos.
 ```
-git clone https://github.com/Microsoft/cameratraps megadetector
-git clone https://github.com/Microsoft/ai4eutils megadetector
+git clone https://github.com/Microsoft/cameratraps
+git clone https://github.com/Microsoft/ai4eutils
 ```
 
 3. Add Microsoft's repos to your Python path.
 ```
-export PYTHONPATH=$PYTHONPATH:$PWD/megadetector/cameratraps
-export PYTHONPATH=$PYTHONPATH:$PWD/megadetector/ai4eutils
+export PYTHONPATH=$PYTHONPATH:$PWD/cameratraps
+export PYTHONPATH=$PYTHONPATH:$PWD/ai4eutils
 ```
 
 4. Create the conda virtual environment from microsoft's .yml file. See [here](https://github.com/microsoft/CameraTraps#installation) for more.
@@ -73,7 +73,7 @@ conda install pandas pytorch torchvision
 
 7. Run Microsoft's run_tf_detector_batch.py script to use the Megadetector on the raw Wellington Camera Traps images and generate the detections output file detections.json. See [2. run_tf_detector_batch.py](https://github.com/microsoft/CameraTraps/blob/main/megadetector.md#2-run_tf_detector_batchpy) for more.
 ```
-python ./megadetector/cameratraps/detection/run_tf_detector_batch.py ./megadetector/megadetector_v3.pb ./data/raw ./megadetector/detections.json
+python ./cameratraps/detection/run_tf_detector_batch.py ./megadetector/megadetector_v3.pb ./data/raw ./megadetector/detections.json
 ```
 
 More detailed instructions and trouble shooting for using the megadetector can be found [here](https://github.com/microsoft/CameraTraps/blob/main/megadetector.md) and [here](https://github.com/microsoft/CameraTraps#installation).

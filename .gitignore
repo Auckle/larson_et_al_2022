@@ -5,6 +5,10 @@
 *.png
 *.csv
 
+# Specific directories
+ai4eutils/
+cameratraps/
+
 # Template .gitignore for Python projects
 
 # Byte-compiled / optimized / DLL files
