@@ -73,7 +73,7 @@ conda install pandas pytorch torchvision
 
 7. Run Microsoft's run_tf_detector_batch.py script to use the Megadetector on the raw Wellington Camera Traps images and generate the detections output file detections.json. See [2. run_tf_detector_batch.py](https://github.com/microsoft/CameraTraps/blob/main/megadetector.md#2-run_tf_detector_batchpy) for more.
 ```
-python ./cameratraps/detection/run_tf_detector_batch.py ./megadetector/megadetector_v3.pb ./data/raw ./megadetector/detections.json
+python3 ./cameratraps/detection/run_tf_detector_batch.py ./megadetector/megadetector_v3.pb ./data/raw ./megadetector/detections.json
 ```
 
 More detailed instructions and trouble shooting for using the megadetector can be found [here](https://github.com/microsoft/CameraTraps/blob/main/megadetector.md) and [here](https://github.com/microsoft/CameraTraps#installation).
@@ -83,12 +83,12 @@ Generate and process the classification dataset images, sort them into training 
 
 1. Generate the classification dataset images by running the crop_detections.py script to crop the animals from the raw images using the detections generated in step 3. Run the Microsoft's Megadetector. Images labeled as empty according to the Wellington Camera Traps metadata file are cropped using the boundary box coordinates of the previous detection.
 ```
-python crop_detections.py ./megadetector/detections.json ./data/raw/wellington_camera_traps.csv ./data/raw ./data/detections
+python3 crop_detections.py ./megadetector/detections.json ./data/raw/wellington_camera_traps.csv ./data/raw ./data/detections
 ```
 
 2. Sort the cropped images into ten training and seven testing datasets using the prepare_classification_datasets.py script.
 ```
-python prepare_classification_datasets.py --detections_csv=./data/detections/wellington_camera_traps_detections.csv --output_csv=training_testing_datasets.csv
+python3 prepare_classification_datasets.py --detections_csv=./data/detections/wellington_camera_traps_detections.csv --output_csv=training_testing_datasets.csv
 ```
 This script also:
 - Combines images labeled as rat, Norway rat, and ship rat into a single "rat" label.
@@ -103,12 +103,12 @@ Train the ten convolutional neural network models using each of the ten training
 
 Use the following command to start training fresh.
 ```
-python training.py --training_testing_csv ./training/training_testing_datasets.csv --dataset_dir ./data/detections
+python3 training.py --training_testing_csv ./training/training_testing_datasets.csv --dataset_dir ./data/detections
 ```
 
 Use the following command to resume training after stopping from saved checkpoints.
 ```
-python training.py --training_testing_csv ./training/training_testing_datasets.csv --dataset_dir ./data/detections --resume_training
+python3 training.py --training_testing_csv ./training/training_testing_datasets.csv --dataset_dir ./data/detections --resume_training
 ```
 
 Each model uses the ResNet-18 architecture[[3]](#references) pretrained on the imagenet database[[4]](#references) with a rectified linear activation function (ReLU), Stochastic Gradient Descent with momentum for backpropagation[[5]](#references), and learning rates and weight decays matching those of Norouzzadeh et al. (2018)[[6]](#references) and Tabak et al. (2018)[[7]](#references).
@@ -119,7 +119,7 @@ Standard data augmentation techniques (random horizontal flipping, cropping, and
 ### 6. CNN Testing and Evaluation
 Test and evaluate the ten models using the seven testing datasets in 13 combinations using the training.py script with the --evaluate flag.
 ```
-python training.py --training_testing_csv ./training/training_testing_datasets.csv --dataset_dir ./data/detections --evaluate
+python3 training.py --training_testing_csv ./training/training_testing_datasets.csv --dataset_dir ./data/detections --evaluate
 ```
 This script generates predictions for each train/test combination and stores them in a .csv file in the training/predictions directory and a single file called model_performance_results.csv containing the following performance metrics across each train/test combination, and by site and class/label within each train/test combination:
 - Top-1 accuracy: # of times the top prediction is correct / # of images tested
@@ -137,7 +137,7 @@ conda install bokeh seaborn
 
 2. Generate figures.
 ```
-python generate_figures.py
+python3 generate_figures.py
 ```
 
 
