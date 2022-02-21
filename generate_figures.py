@@ -13,38 +13,6 @@ import seaborn as sns
 
 
 ##########################################################
-# Configuration
-
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--output_dir",
-    type=str,
-    default="./figures/",
-    help="Directory containing cropped images",
-)
-parser.add_argument(
-    "--figure_prefix",
-    type=str,
-    default=None,
-    help="Prefix to add to saved figure file names.",
-)
-args = parser.parse_args()
-
-# Check arguments
-OUTPUT_DIR = args.output_dir
-assert os.path.exists(OUTPUT_DIR), OUTPUT_DIR + " does not exist"
-
-FIGURE_PREFIX = args.figure_prefix
-
-
-def get_fig_path(fig_name=str, prefix=None):
-    if prefix:
-        fig_name = prefix + "_" + fig_name
-    fig_name = fig_name + ".png"
-    return os.path.join(OUTPUT_DIR, fig_name)
-
-
-##########################################################
 # Constants
 
 ALL_MODELS = [
@@ -230,6 +198,12 @@ LEGEND_PATCH_EDGE_COLOR = "white"
 
 # helpers
 
+def get_fig_path(fig_name=str, output_dir=str, prefix=None):
+    if prefix:
+        fig_name = prefix + "_" + fig_name
+    fig_name = fig_name + ".png"
+    return os.path.join(output_dir, fig_name)
+
 
 def configure_matplt(sub_plt_cnt=int):
     if sub_plt_cnt == 2:
@@ -384,26 +358,6 @@ def adjust_legend(legend=plt.legend, height=LEG_PATCH_HEIGHT, set_y=LEG_Y_OFFSET
                     draw_area.set_visible(False)
 
 
-def generate_and_adjust_legend(
-    ax=plt.axes, legend_patches=list, height=LEG_PATCH_HEIGHT
-):
-
-    # add legend to subplot
-    leg = ax.legend(
-        handles=legend_patches,
-        loc=LEG_LOC,
-        borderaxespad=LEG_BORDER_AX_PAD,
-        borderpad=LEG_BORDER_PAD,
-        fancybox=LEG_FANCY_BOX,
-        shadow=LEG_SHADOW,
-        labelspacing=LEG_LABEL_SPACING_B,
-        handlelength=LEG_HANDLE_LENGTH_B,
-    )
-
-    # adjust legend
-    adjust_legend(leg, height=height)
-
-
 def autolabel(
     rects,
     ax=plt.axes,
@@ -481,91 +435,48 @@ def draw_legend_group(patches, model_names, legend_patches, leg_items, label, in
         legend_patches.append(patch)
     return legend_patches
 
-
-def draw_q1_legend(df=pd.DataFrame, ax=plt.axes, model_names=list):
+def draw_legend(
+    df=pd.DataFrame, 
+    ax=plt.axes, 
+    model_names=list, 
+    model_leg_names=dict,
+    group_names=list, 
+    group_indexes=list, 
+    patch_height=LEG_PATCH_HEIGHT
+):
     patches = ax.patches
     legend_patches = []
-    legend_patches = draw_legend_group(
-        patches,
-        model_names,
-        legend_patches,
-        MODEL_NAMES_LEG_Q1,
-        "Models",
-        range(0, len(patches)),
-    )
-    generate_and_adjust_legend(ax, legend_patches)
 
+    for group_name, group_index in zip(group_names, group_indexes):
+        legend_patches = draw_legend_group(
+            patches,
+            model_names,
+            legend_patches,
+            model_leg_names,
+            group_name,
+            group_index,
+        )
 
-def draw_q2_legend(df=pd.DataFrame, ax=plt.axes, model_names=list):
-    patches = ax.patches
-    legend_patches = []
-    legend_patches = draw_legend_group(
-        patches,
-        model_names,
-        legend_patches,
-        MODEL_NAMES_LEG_Q2_and_Q3,
-        "Grouped Models",
-        range(0, 3),
+    # add legend to subplot
+    leg = ax.legend(
+        handles=legend_patches,
+        loc=LEG_LOC,
+        borderaxespad=LEG_BORDER_AX_PAD,
+        borderpad=LEG_BORDER_PAD,
+        fancybox=LEG_FANCY_BOX,
+        shadow=LEG_SHADOW,
+        labelspacing=LEG_LABEL_SPACING_B,
+        handlelength=LEG_HANDLE_LENGTH_B,
     )
-    legend_patches = draw_legend_group(
-        patches,
-        model_names,
-        legend_patches,
-        MODEL_NAMES_LEG_Q2_and_Q3,
-        "Individual Models",
-        range(3, 6),
-    )
-    generate_and_adjust_legend(ax, legend_patches)
 
-
-def draw_q3_legend(df=pd.DataFrame, ax=plt.axes, model_names=list):
-    patches = ax.patches
-    legend_patches = []
-    legend_patches = draw_legend_group(
-        patches,
-        model_names,
-        legend_patches,
-        MODEL_NAMES_LEG_Q2_and_Q3,
-        "Models Without Novel Species",
-        range(0, 4, 2),
-    )
-    legend_patches = draw_legend_group(
-        patches,
-        model_names,
-        legend_patches,
-        MODEL_NAMES_LEG_Q2_and_Q3,
-        "Models With Novel Species",
-        range(1, 4, 2),
-    )
-    generate_and_adjust_legend(ax, legend_patches)
-
-
-def draw_q4_legend(df=pd.DataFrame, ax=plt.axes, model_names=list):
-    patches = ax.patches
-    legend_patches = []
-    legend_patches = draw_legend_group(
-        patches,
-        model_names,
-        legend_patches,
-        MODEL_NAMES_LEG_Q4,
-        "Biome Models",
-        range(0, 2),
-    )
-    legend_patches = draw_legend_group(
-        patches,
-        model_names,
-        legend_patches,
-        MODEL_NAMES_LEG_Q4,
-        "Project-specifc Models",
-        range(2, 4),
-    )
-    generate_and_adjust_legend(ax, legend_patches, 20)
+    # adjust legend
+    adjust_legend(leg, height=patch_height)
 
 
 # figures
 
 
-def figure_stats_v_invs_natv_balance_in_train_df(df=pd.DataFrame, png_path=str):
+def make_figure_stats_v_invs_natv_balance_in_train_df(df=pd.DataFrame, png_path=str):
     configure_matplt(3)
 
     model_names = MODELS_Q2
@@ -651,7 +562,7 @@ def figure_stats_v_invs_natv_balance_in_train_df(df=pd.DataFrame, png_path=str):
         plt.savefig(png_path)
 
 
-def figure_false_alarm_and_missed_invasive_v_top_1_acc(df=pd.DataFrame, png_path=str):
+def make_figure_false_alarm_and_missed_invasive_v_top_1_acc(df=pd.DataFrame, png_path=str):
     configure_matplt(2)
 
     model_names = MODELS_W_MATCHING_TRAIN_AND_TEST_LABELS
@@ -706,7 +617,7 @@ def figure_false_alarm_and_missed_invasive_v_top_1_acc(df=pd.DataFrame, png_path
         plt.savefig(png_path)
 
 
-def figure_top_k_train_df_cnt(df=pd.DataFrame, png_path=str):
+def make_figure_top_k_train_df_cnt(df=pd.DataFrame, png_path=str):
     configure_matplt(2)
 
     model_names = ALL_MODELS
@@ -852,7 +763,7 @@ def figure_top_k_train_df_cnt(df=pd.DataFrame, png_path=str):
     plt.savefig(png_path)
 
 
-def figure_stats_by_model(
+def make_figure_all_stats_of_models(
     df=pd.DataFrame,
     png_path=str,
     model_names=list,
@@ -923,13 +834,25 @@ def figure_stats_by_model(
         # legend
         if idx == legend_subplot:
             if legend_type == "Q1":
-                draw_q1_legend(df, ax, model_names)
+                group_names = ["Models"]
+                group_indexes = [range(0, len(ax.patches))]
+                draw_legend(df, ax, model_names, MODEL_NAMES_LEG_Q1, group_names, group_indexes)
+
             elif legend_type == "Q2":
-                draw_q2_legend(df, ax, model_names)
+                group_names = ["Grouped Models", "Individual Models"]
+                group_indexes = [range(0, 3), range(3, 6)]
+                MODEL_NAMES_LEG_Q2_and_Q3
+                draw_legend(df, ax, model_names, MODEL_NAMES_LEG_Q2_and_Q3, group_names, group_indexes)
+
             elif legend_type == "Q3":
-                draw_q3_legend(df, ax, model_names)
+                group_names = ["Models Without Novel Species", "Models With Novel Species"]
+                group_indexes = [range(0, 4, 2), range(1, 4, 2)]
+                draw_legend(df, ax, model_names, MODEL_NAMES_LEG_Q2_and_Q3, group_names, group_indexes)
+            
             elif legend_type == "Q4":
-                draw_q4_legend(df, ax, model_names)
+                group_names = ["Biome Models", "Project-specifc Models"]
+                group_indexes = (range(0, 2), range(2, 4))
+                draw_legend(df, ax, model_names, MODEL_NAMES_LEG_Q4, group_names, group_indexes, 20)
 
     plt.savefig(png_path, bbox_inches="tight")
 
@@ -939,38 +862,62 @@ def figure_stats_by_model(
 
 if __name__ == "__main__":
 
+    ##########################################################
+    # Configuration
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        default="./figures/",
+        help="Directory containing cropped images",
+    )
+    parser.add_argument(
+        "--figure_prefix",
+        type=str,
+        default=None,
+        help="Prefix to add to saved figure file names.",
+    )
+    args = parser.parse_args()
+
+    # Check arguments
+    output_dir = args.output_dir
+    assert os.path.exists(output_dir), output_dir + " does not exist"
+
+    figure_prefix = args.figure_prefix
+
     df = pd.read_csv("./model_performance_results.csv")
 
-    save_path = get_fig_path("stats_v_invs_natv_balance_in_train_df", FIGURE_PREFIX)
-    figure_stats_v_invs_natv_balance_in_train_df(df, save_path)
+    save_path = get_fig_path("stats_v_invs_natv_balance_in_train_df", output_dir, figure_prefix)
+    make_figure_stats_v_invs_natv_balance_in_train_df(df, save_path)
 
     save_path = get_fig_path(
-        "false_alarm_and_missed_invasive_v_top_1_acc", FIGURE_PREFIX
+        "false_alarm_and_missed_invasive_v_top_1_acc", output_dir, figure_prefix
     )
-    figure_false_alarm_and_missed_invasive_v_top_1_acc(df, save_path)
+    make_figure_false_alarm_and_missed_invasive_v_top_1_acc(df, save_path)
 
-    save_path = get_fig_path("top_k_train_df_cnt", FIGURE_PREFIX)
-    figure_top_k_train_df_cnt(df, save_path)
+    save_path = get_fig_path("top_k_train_df_cnt", output_dir, figure_prefix)
+    make_figure_top_k_train_df_cnt(df, save_path)
 
     stats = ["top_1_correct_acc", "false_alarm_acc", "missed_invasive_acc"]
     labels = ["Top-1 Accuracy", "False Alarm Rate", "Missed Invasive Rate"]
 
-    save_path = get_fig_path("stats_by_model_Q1", FIGURE_PREFIX)
-    figure_stats_by_model(
+    save_path = get_fig_path("all_stats_Q1_models_grp_v_ind", output_dir, figure_prefix)
+    make_figure_all_stats_of_models(
         df, save_path, MODELS_Q1, stats, labels, legend_subplot=1, legend_type="Q1"
     )
 
-    save_path = get_fig_path("stats_by_model_Q2", FIGURE_PREFIX)
-    figure_stats_by_model(
+    save_path = get_fig_path("all_stats_Q2_models_10_100_1000", output_dir, figure_prefix)
+    make_figure_all_stats_of_models(
         df, save_path, MODELS_Q2, stats, labels, legend_subplot=1, legend_type="Q2"
     )
 
-    save_path = get_fig_path("stats_by_model_Q3", FIGURE_PREFIX)
-    figure_stats_by_model(
+    save_path = get_fig_path("all_stats_Q3_models_sm_v_lg", output_dir, figure_prefix)
+    make_figure_all_stats_of_models(
         df, save_path, MODELS_Q3, stats, labels, legend_subplot=1, legend_type="Q3"
     )
 
-    save_path = get_fig_path("stats_by_model_Q4", FIGURE_PREFIX)
-    figure_stats_by_model(
+    save_path = get_fig_path("all_stats_Q4_models_model_selection", output_dir, figure_prefix)
+    make_figure_all_stats_of_models(
         df, save_path, MODELS_Q4, stats, labels, legend_subplot=1, legend_type="Q4"
     )
