@@ -124,7 +124,9 @@ def save_model(
         )
 
 
-def get_means_stds(df=pd.DataFrame, dataset_dir=str, dataset_info=dict, mean_std_df=pd.DataFrame):
+def get_means_stds(
+    df=pd.DataFrame, dataset_dir=str, dataset_info=dict, mean_std_df=pd.DataFrame
+):
 
     try:
         row = mean_std_df.loc[train_index]
@@ -544,7 +546,9 @@ if __name__ == "__main__":
 
     # Check arguments
     training_testing_csv = args.training_testing_csv
-    assert os.path.exists(training_testing_csv), training_testing_csv + " does not exist"
+    assert os.path.exists(training_testing_csv), (
+        training_testing_csv + " does not exist"
+    )
 
     dataset_dir = args.dataset_dir
     assert os.path.exists(dataset_dir), dataset_dir + " does not exist"
@@ -581,7 +585,9 @@ if __name__ == "__main__":
     # select device use gpu if available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    datasets_indexes = mc.TEST_DATASET_INDEXES if evaluate_models else mc.TRAIN_DATASET_INDEXES
+    datasets_indexes = (
+        mc.TEST_DATASET_INDEXES if evaluate_models else mc.TRAIN_DATASET_INDEXES
+    )
     if evaluate_models:
         evaluation_output_df = pd.DataFrame(columns=mc.PERFORMANCE_DF_COLS)
 

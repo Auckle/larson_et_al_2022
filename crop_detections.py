@@ -12,7 +12,6 @@ import sys
 import traceback
 
 
-
 ##########################################################
 # Functions
 
@@ -22,7 +21,9 @@ def save_progress(output_db=pd.DataFrame, output_csv=str):
     output_db.to_csv(output_csv)
 
 
-def img_crop_detection(output_dir=str, img_file=str, output_file=str, bbox=list, padding_factor=float):
+def img_crop_detection(
+    output_dir=str, img_file=str, output_file=str, bbox=list, padding_factor=float
+):
 
     # Load image
     img = Image.open(img_file)
@@ -102,7 +103,6 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-
     # Check arguments
     detections_json = args.detections_json
     assert os.path.exists(detections_json), detections_json + " does not exist"
@@ -130,7 +130,6 @@ if __name__ == "__main__":
     # image
     padding_factor = args.padding_factor
     assert padding_factor >= 1, "Padding factor should be equal or larger 1"
-
 
     input_db = pd.read_csv(image_metadata_csv)
     input_db = input_db.set_index(["file"])
@@ -219,7 +218,13 @@ if __name__ == "__main__":
                     raw_empty_imgs += 1
                     # print("    # CROPPING IMG W/ NO ANIMAL - ", org_file_name, input_row['label'])
                     # use the bounding boxes from the last non-empty image to generate a cropped empty image
-                    img_crop_detection(output_dir, img_file, new_file_name, last_detection_cords, padding_factor)
+                    img_crop_detection(
+                        output_dir,
+                        img_file,
+                        new_file_name,
+                        last_detection_cords,
+                        padding_factor,
+                    )
                     row = [
                         input_row["sequence"],
                         input_row["image_sequence"],
@@ -263,7 +268,11 @@ if __name__ == "__main__":
 
                             # print("    # CROPPING IMG W/ ANIMAL - ", new_file_name, input_row['label'])
                             img_crop_detection(
-                                output_dir, img_file, new_file_name, detection["bbox"], padding_factor
+                                output_dir,
+                                img_file,
+                                new_file_name,
+                                detection["bbox"],
+                                padding_factor,
                             )
                             last_detection_cords = detection["bbox"]
                             row = [

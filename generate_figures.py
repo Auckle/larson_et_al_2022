@@ -198,6 +198,7 @@ LEGEND_PATCH_EDGE_COLOR = "white"
 
 # helpers
 
+
 def get_fig_path(fig_name=str, output_dir=str, prefix=None):
     if prefix:
         fig_name = prefix + "_" + fig_name
@@ -435,14 +436,15 @@ def draw_legend_group(patches, model_names, legend_patches, leg_items, label, in
         legend_patches.append(patch)
     return legend_patches
 
+
 def draw_legend(
-    df=pd.DataFrame, 
-    ax=plt.axes, 
-    model_names=list, 
+    df=pd.DataFrame,
+    ax=plt.axes,
+    model_names=list,
     model_leg_names=dict,
-    group_names=list, 
-    group_indexes=list, 
-    patch_height=LEG_PATCH_HEIGHT
+    group_names=list,
+    group_indexes=list,
+    patch_height=LEG_PATCH_HEIGHT,
 ):
     patches = ax.patches
     legend_patches = []
@@ -562,7 +564,9 @@ def make_figure_stats_v_invs_natv_balance_in_train_df(df=pd.DataFrame, png_path=
         plt.savefig(png_path)
 
 
-def make_figure_false_alarm_and_missed_invasive_v_top_1_acc(df=pd.DataFrame, png_path=str):
+def make_figure_false_alarm_and_missed_invasive_v_top_1_acc(
+    df=pd.DataFrame, png_path=str
+):
     configure_matplt(2)
 
     model_names = MODELS_W_MATCHING_TRAIN_AND_TEST_LABELS
@@ -836,23 +840,50 @@ def make_figure_all_stats_of_models(
             if legend_type == "Q1":
                 group_names = ["Models"]
                 group_indexes = [range(0, len(ax.patches))]
-                draw_legend(df, ax, model_names, MODEL_NAMES_LEG_Q1, group_names, group_indexes)
+                draw_legend(
+                    df, ax, model_names, MODEL_NAMES_LEG_Q1, group_names, group_indexes
+                )
 
             elif legend_type == "Q2":
                 group_names = ["Grouped Models", "Individual Models"]
                 group_indexes = [range(0, 3), range(3, 6)]
                 MODEL_NAMES_LEG_Q2_and_Q3
-                draw_legend(df, ax, model_names, MODEL_NAMES_LEG_Q2_and_Q3, group_names, group_indexes)
+                draw_legend(
+                    df,
+                    ax,
+                    model_names,
+                    MODEL_NAMES_LEG_Q2_and_Q3,
+                    group_names,
+                    group_indexes,
+                )
 
             elif legend_type == "Q3":
-                group_names = ["Models Without Novel Species", "Models With Novel Species"]
+                group_names = [
+                    "Models Without Novel Species",
+                    "Models With Novel Species",
+                ]
                 group_indexes = [range(0, 4, 2), range(1, 4, 2)]
-                draw_legend(df, ax, model_names, MODEL_NAMES_LEG_Q2_and_Q3, group_names, group_indexes)
-            
+                draw_legend(
+                    df,
+                    ax,
+                    model_names,
+                    MODEL_NAMES_LEG_Q2_and_Q3,
+                    group_names,
+                    group_indexes,
+                )
+
             elif legend_type == "Q4":
                 group_names = ["Biome Models", "Project-specifc Models"]
                 group_indexes = (range(0, 2), range(2, 4))
-                draw_legend(df, ax, model_names, MODEL_NAMES_LEG_Q4, group_names, group_indexes, 20)
+                draw_legend(
+                    df,
+                    ax,
+                    model_names,
+                    MODEL_NAMES_LEG_Q4,
+                    group_names,
+                    group_indexes,
+                    20,
+                )
 
     plt.savefig(png_path, bbox_inches="tight")
 
@@ -888,7 +919,9 @@ if __name__ == "__main__":
 
     df = pd.read_csv("./model_performance_results.csv")
 
-    save_path = get_fig_path("stats_v_invs_natv_balance_in_train_df", output_dir, figure_prefix)
+    save_path = get_fig_path(
+        "stats_v_invs_natv_balance_in_train_df", output_dir, figure_prefix
+    )
     make_figure_stats_v_invs_natv_balance_in_train_df(df, save_path)
 
     save_path = get_fig_path(
@@ -907,7 +940,9 @@ if __name__ == "__main__":
         df, save_path, MODELS_Q1, stats, labels, legend_subplot=1, legend_type="Q1"
     )
 
-    save_path = get_fig_path("all_stats_Q2_models_10_100_1000", output_dir, figure_prefix)
+    save_path = get_fig_path(
+        "all_stats_Q2_models_10_100_1000", output_dir, figure_prefix
+    )
     make_figure_all_stats_of_models(
         df, save_path, MODELS_Q2, stats, labels, legend_subplot=1, legend_type="Q2"
     )
@@ -917,7 +952,9 @@ if __name__ == "__main__":
         df, save_path, MODELS_Q3, stats, labels, legend_subplot=1, legend_type="Q3"
     )
 
-    save_path = get_fig_path("all_stats_Q4_models_model_selection", output_dir, figure_prefix)
+    save_path = get_fig_path(
+        "all_stats_Q4_models_model_selection", output_dir, figure_prefix
+    )
     make_figure_all_stats_of_models(
         df, save_path, MODELS_Q4, stats, labels, legend_subplot=1, legend_type="Q4"
     )
