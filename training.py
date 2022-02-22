@@ -32,54 +32,6 @@ Ecology and Evolution,10(4), 585–590. https://doi.org/10.1111/2041-210X.13120
 
 
 ##########################################################
-# Configuration
-
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--training_testing_csv",
-    type=str,
-    default=mc.DEFAULT_TRAIN_TEST_CSV_FILE,
-    help="CSV file generated from the prepare_classification_datasets.py script.",
-)
-
-parser.add_argument(
-    "--dataset_dir",
-    type=str,
-    default="./data/detections",
-    help="Directory containing cropped images",
-)
-
-parser.add_argument(
-    "--resume_training",
-    action="store_true",
-    help="Resume training from saved checkpoint",
-)
-
-parser.add_argument(
-    "--evaluate", action="store_true", help="Evaluate models with testing datasets"
-)
-
-args = parser.parse_args()
-
-# Check arguments
-TRAIN_TEST_CSV = args.training_testing_csv
-assert os.path.exists(TRAIN_TEST_CSV), TRAIN_TEST_CSV + " does not exist"
-
-DATASET_DIR = args.dataset_dir
-assert os.path.exists(DATASET_DIR), DATASET_DIR + " does not exist"
-
-RESUME_TRAINING = args.resume_training
-EVALUATE = args.evaluate
-
-MEANS_STDS_CSV = "./training/means_stds.csv"
-if EVALUATE:
-    assert os.path.exists(
-        MEANS_STDS_CSV
-    ), "No means_stds.csv file found first run training.py without --evaluate flag."
-
-EVALUATE_OUTPUT_CSV = "./model_performance_results.csv"
-
-##########################################################
 # Functions
 
 
@@ -172,7 +124,7 @@ def save_model(
         )
 
 
-def get_means_stds(df=pd.DataFrame, dataset_info=dict, mean_std_df=pd.DataFrame):
+def get_means_stds(df=pd.DataFrame, dataset_dir=str, dataset_info=dict, mean_std_df=pd.DataFrame):
 
     try:
         row = mean_std_df.loc[train_index]
@@ -185,7 +137,7 @@ def get_means_stds(df=pd.DataFrame, dataset_info=dict, mean_std_df=pd.DataFrame)
         )
 
     except KeyError:
-        dataset = CustomDataset(df, DATASET_DIR, dataset_info)
+        dataset = CustomDataset(df, dataset_dir, dataset_info)
         dataloader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=0)
 
         mean = 0.0
@@ -216,7 +168,7 @@ def get_means_stds(df=pd.DataFrame, dataset_info=dict, mean_std_df=pd.DataFrame)
             means_stds = [means[0], means[1], means[2], stds[0], stds[1], stds[2]]
             mean_std_df.at[train_index] = means_stds
 
-        mean_std_df.to_csv(MEANS_STDS_CSV)
+        mean_std_df.to_csv(means_stds_csv)
         print(
             "##### Generated means and stds for training dataset",
             train_index,
@@ -560,29 +512,77 @@ def evaluate(dataloader=DataLoader, class_cnt=int, dataset_info=dict):
 
 if __name__ == "__main__":
 
+    ##########################################################
+    # Configuration
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--training_testing_csv",
+        type=str,
+        default=mc.DEFAULT_TRAIN_TEST_CSV_FILE,
+        help="CSV file generated from the prepare_classification_datasets.py script.",
+    )
+
+    parser.add_argument(
+        "--dataset_dir",
+        type=str,
+        default="./data/detections",
+        help="Directory containing cropped images",
+    )
+
+    parser.add_argument(
+        "--resume_training",
+        action="store_true",
+        help="Resume training from saved checkpoint",
+    )
+
+    parser.add_argument(
+        "--evaluate", action="store_true", help="Evaluate models with testing datasets"
+    )
+
+    args = parser.parse_args()
+
+    # Check arguments
+    training_testing_csv = args.training_testing_csv
+    assert os.path.exists(training_testing_csv), training_testing_csv + " does not exist"
+
+    dataset_dir = args.dataset_dir
+    assert os.path.exists(dataset_dir), dataset_dir + " does not exist"
+
+    resume_training = args.resume_training
+    evaluate_models = args.evaluate
+
+    means_stds_csv = "./training/means_stds.csv"
+    if evaluate_models:
+        assert os.path.exists(
+            means_stds_csv
+        ), "No means_stds.csv file found first run training.py without --evaluate flag."
+
+    EVALUATE_OUTPUT_CSV = "./model_performance_results.csv"
+
     print("##########################################################")
     print("##### START  #####\n")
-    print("DATASET_DIR    :", DATASET_DIR)
-    print("TRAIN_TEST_CSV :", TRAIN_TEST_CSV)
-    print("RESUME_TRAINING:", RESUME_TRAINING)
+    print("dataset dir          :", dataset_dir)
+    print("training_testing csv :", training_testing_csv)
+    print("resume training      :", resume_training)
 
-    if os.path.exists(MEANS_STDS_CSV):
+    if os.path.exists(means_stds_csv):
         print("\n##### Loading existing means stds csv file.")
-        mean_stds_df = pd.read_csv(MEANS_STDS_CSV)
+        mean_stds_df = pd.read_csv(means_stds_csv)
         mean_stds_df = mean_stds_df.set_index(["train_index"])
     else:
         print("\n##### Creating new means stds csv.")
         mean_stds_df = pd.DataFrame(columns=mc.MEANS_STDS_DF_COLS)
         mean_stds_df = mean_stds_df.set_index(["train_index"])
 
-    df = pd.read_csv(TRAIN_TEST_CSV)
+    df = pd.read_csv(training_testing_csv)
     df = df.set_index(["file"])
 
     # select device use gpu if available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    datasets_indexes = mc.TEST_DATASET_INDEXES if EVALUATE else mc.TRAIN_DATASET_INDEXES
-    if EVALUATE:
+    datasets_indexes = mc.TEST_DATASET_INDEXES if evaluate_models else mc.TRAIN_DATASET_INDEXES
+    if evaluate_models:
         evaluation_output_df = pd.DataFrame(columns=mc.PERFORMANCE_DF_COLS)
 
     for dataset_index in datasets_indexes:
@@ -590,7 +590,7 @@ if __name__ == "__main__":
         dataset_info = mc.CUSTOM_DATASETS_INFO[dataset_index]
         train_index = dataset_info["train_id"]
 
-        means_stds = get_means_stds(df, dataset_info, mean_stds_df)
+        means_stds = get_means_stds(df, dataset_dir, dataset_info, mean_stds_df)
 
         data_transform = transforms.Compose(
             [
@@ -602,7 +602,7 @@ if __name__ == "__main__":
             ]
         )
 
-        dataset = CustomDataset(df, DATASET_DIR, dataset_info, transform=data_transform)
+        dataset = CustomDataset(df, dataset_dir, dataset_info, transform=data_transform)
         dataloader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=0)
 
         # Note: Getting the number of classes is ugly because several
@@ -621,7 +621,7 @@ if __name__ == "__main__":
         # Norouzzadeh et al., 2018, Tabak et al., 2019
         criterion = nn.CrossEntropyLoss()
 
-        if EVALUATE:  # evaluate models with test datasets
+        if evaluate_models:  # evaluate models with test datasets
 
             model_path = mc.get_best_model_path(
                 mc.CUSTOM_DATASETS_INFO[train_index]["name"]
@@ -651,7 +651,7 @@ if __name__ == "__main__":
 
             print("##### STARTING Training model", dataset.name)
             model_path = mc.get_checkpoint_path(dataset_info["name"])
-            if RESUME_TRAINING and os.path.exists(model_path):
+            if resume_training and os.path.exists(model_path):
                 print("##### RESUMING training with", model_path)
 
                 # load model information from checkpoint
