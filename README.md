@@ -31,7 +31,7 @@ Retrieve the [Wellington Camera Traps](https://lila.science/datasets/wellingtonc
 ```
 wget -c -P ./data/raw https://lilablobssc.blob.core.windows.net/wellingtoncameratraps/wct_images.zip
 ```
-or if difficulties are encountered in downloading the zip file because of its size
+or, if difficulties are encountered in downloading the zip file because of its size:
 
 1. b. 1. Download the azcopy command-line utility as described [here](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10).
 1. b. 2. Use the azopy util to download images one at a time to the data/raw directory.
