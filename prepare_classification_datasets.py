@@ -8,42 +8,6 @@ import os
 import pandas as pd
 
 
-##########################################################
-# Configuration
-
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--detections_csv",
-    type=str,
-    default=mc.DEFAULT_DETECTION_CSV_FILE,
-    help="CSV file generated from the crop_detections.py script.",
-)
-
-parser.add_argument(
-    "--output_dir",
-    type=str,
-    default=mc.DEFAULT_OUTPUT_DIR_TRAIN_TEST_DF_CSV,
-    help="Output directory for processed datasets csv",
-)
-
-parser.add_argument(
-    "--output_csv",
-    type=str,
-    default=mc.DEFAULT_TRAIN_TEST_CSV_FILE_NAME,
-    help="Output CSV file for processed datasets",
-)
-
-args = parser.parse_args()
-
-# Check arguments
-DETECTIONS_CSV = args.detections_csv
-assert os.path.exists(DETECTIONS_CSV), DETECTIONS_CSV + " does not exist"
-
-OUTPUT_DIR = args.output_dir
-assert os.path.exists(OUTPUT_DIR), OUTPUT_DIR + " does not exist"
-OUTPUT_CSV = os.path.join(OUTPUT_DIR, args.output_csv)
-
-
 SET_NAMES_TRAIN_INDI = [
     "test_b_indi_all_10_100_1000_biome_c",
     "train_f_indi_10",
@@ -85,7 +49,7 @@ def print_all_sets(db=pd.DataFrame, counts=False):
         print_set_info(dataset["db_col"], dataset["label_col"], db, counts)
 
 
-def training_sets_full(db=pd.DataFrame):
+def define_training_sets_full(db=pd.DataFrame):
     for site in db.site.unique():
 
         # select all entries for site
@@ -138,7 +102,7 @@ def training_sets_full(db=pd.DataFrame):
             ] = False
 
 
-def training_sets_10_100_1000(set_names=list, label_name=str, db=pd.DataFrame):
+def define_training_sets_10_100_1000(set_names=list, label_name=str, db=pd.DataFrame):
     for site in db.site.unique():
         site_db = db[db["site"] == site]
 
@@ -215,7 +179,7 @@ def training_sets_10_100_1000(set_names=list, label_name=str, db=pd.DataFrame):
             db.loc[(db["org_file"].isin(train_1000)), [set_names[3]]] = True
 
 
-def testing_set_10_100_1000(set_names=list, label_name=str, db=pd.DataFrame):
+def define_testing_set_10_100_1000(set_names=list, label_name=str, db=pd.DataFrame):
     db.loc[
         (db[set_names[1]] == False) & (db[mc.LABEL_GRPD] != "INVASIVE"), [set_names[0]]
     ] = True
@@ -265,13 +229,48 @@ def filter_set_lg_and_sm_prj_by_classes(
 
 if __name__ == "__main__":
 
+    ##########################################################
+    # Configuration
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--detections_csv",
+        type=str,
+        default=mc.DEFAULT_DETECTION_CSV_FILE,
+        help="CSV file generated from the crop_detections.py script.",
+    )
+
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        default=mc.DEFAULT_OUTPUT_DIR_TRAIN_TEST_DF_CSV,
+        help="Output directory for processed datasets csv",
+    )
+
+    parser.add_argument(
+        "--output_csv",
+        type=str,
+        default=mc.DEFAULT_TRAIN_TEST_CSV_FILE_NAME,
+        help="Output CSV file for processed datasets",
+    )
+
+    args = parser.parse_args()
+
+    # Check arguments
+    detections_csv = args.detections_csv
+    assert os.path.exists(detections_csv), detections_csv + " does not exist"
+
+    output_dir = args.output_dir
+    assert os.path.exists(output_dir), output_dir + " does not exist"
+    output_csv = os.path.join(output_dir, args.output_csv)
+
     print("\n##########################################################")
     print("##### START #####\n")
 
-    print("DETECTIONS_CSV:", DETECTIONS_CSV)
-    print("   OUTPUT_CSV:", OUTPUT_CSV)
+    print("detections csv:", detections_csv)
+    print("   output_csv:", output_csv)
 
-    db = pd.read_csv(DETECTIONS_CSV)
+    db = pd.read_csv(detections_csv)
 
     db = db.set_index(["file"])
     db["date"] = pd.to_datetime(db["date"])
@@ -305,13 +304,13 @@ if __name__ == "__main__":
 
     # Prepare training sets
     # Set train_a_grpd_all, train_b_indi_all
-    training_sets_full(db)
+    define_training_sets_full(db)
 
     # Set train sets: train_c_grpd_10, train_d_grpd_100, train_e_grpd_1000
-    training_sets_10_100_1000(SET_NAMES_TRAIN_GRPD, mc.LABEL_GRPD, db)
+    define_training_sets_10_100_1000(SET_NAMES_TRAIN_GRPD, mc.LABEL_GRPD, db)
 
     # Set train sets: train_f_indi_10, train_g_indi_100, train_h_indi_1000
-    training_sets_10_100_1000(SET_NAMES_TRAIN_INDI, mc.LABEL_INDI, db)
+    define_training_sets_10_100_1000(SET_NAMES_TRAIN_INDI, mc.LABEL_INDI, db)
 
     # set train set: train_i_lg_prj, train_j_sm_prj
     db.train_i_lg_prj = db.train_c_grpd_10
@@ -329,10 +328,10 @@ if __name__ == "__main__":
 
     # Prepare testing sets
     # Set test set: test_a_grpd_all_10_100_1000
-    testing_set_10_100_1000(SET_NAMES_TEST_GRPD, mc.LABEL_GRPD, db)
+    define_testing_set_10_100_1000(SET_NAMES_TEST_GRPD, mc.LABEL_GRPD, db)
 
     # Set test set: test_b_indi_all_10_100_1000_biome_c
-    testing_set_10_100_1000(SET_NAMES_TEST_INDI, mc.LABEL_INDI, db)
+    define_testing_set_10_100_1000(SET_NAMES_TEST_INDI, mc.LABEL_INDI, db)
 
     # set test_c_indi_biome_ots
     db.loc[
@@ -367,8 +366,8 @@ if __name__ == "__main__":
     print_all_sets(db, True)
     print_all_sets(db)
 
-    print("\n\n######## INFO: Saving processed datasets to", OUTPUT_CSV)
-    db.to_csv(OUTPUT_CSV)
+    print("\n\n######## INFO: Saving processed datasets to", output_csv)
+    db.to_csv(output_csv)
 
     print("##### END #####\n")
     print("\n##########################################################")
