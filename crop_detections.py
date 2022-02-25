@@ -56,7 +56,8 @@ def img_crop_detection(
 ##########################################################
 # Main
 
-if __name__ == "__main__":
+
+def main():
 
     print("\n##########################################################")
     print("##### START #####\n")
@@ -152,27 +153,6 @@ if __name__ == "__main__":
     detections_db = detections_db.set_index(["file"])
 
     image_list = glob.glob(input_dir + "/*.JPG")
-
-    print(
-        "\detections json:",
-        detections_json,
-        "\image metadata csv:",
-        image_metadata_csv,
-        "\input dir:",
-        input_dir,
-        "\output dir:",
-        output_dir,
-        "\output csv:",
-        output_csv,
-        "\detection threshold:",
-        detection_threshold,
-        "\padding factor:",
-        padding_factor,
-        "\n",
-    )
-    print("     input database:", input_db.columns.values)
-    print("detections database:", detections_db.columns.values)
-    print("    output database:", output_db.columns.values, "\n")
 
     raw_img_cnt = len(image_list)
     raw_img_processed_cnt = 0
@@ -346,3 +326,7 @@ if __name__ == "__main__":
     print(" ")
     print("\n##### END #####")
     print("##########################################################")
+
+
+if __name__ == "__main__":
+    main()

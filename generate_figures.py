@@ -891,7 +891,8 @@ def make_figure_all_stats_of_models(
 ##########################################################
 # Main
 
-if __name__ == "__main__":
+
+def main():
 
     ##########################################################
     # Configuration
@@ -958,3 +959,7 @@ if __name__ == "__main__":
     make_figure_all_stats_of_models(
         df, save_path, MODELS_Q4, stats, labels, legend_subplot=1, legend_type="Q4"
     )
+
+
+if __name__ == "__main__":
+    main()

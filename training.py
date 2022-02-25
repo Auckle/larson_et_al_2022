@@ -125,11 +125,16 @@ def save_model(
 
 
 def get_means_stds(
-    df=pd.DataFrame, dataset_dir=str, dataset_info=dict, mean_std_df=pd.DataFrame
+    df=pd.DataFrame,
+    dataset_dir=str,
+    dataset_info=dict,
+    mean_stds_df=pd.DataFrame,
+    save_file=str,
 ):
 
+    train_index = dataset_info["train_id"]
     try:
-        row = mean_std_df.loc[train_index]
+        row = mean_stds_df.loc[train_index]
         means_stds = [
             [row.mean_a, row.mean_b, row.mean_c],
             [row.std_a, row.std_b, row.std_c],
@@ -167,10 +172,17 @@ def get_means_stds(
 
             means = mean.tolist()
             stds = std.tolist()
-            means_stds = [means[0], means[1], means[2], stds[0], stds[1], stds[2]]
-            mean_std_df.at[train_index] = means_stds
+            means_stds = [[means[0], means[1], means[2]], [stds[0], stds[1], stds[2]]]
+            mean_stds_df.at[train_index] = [
+                means[0],
+                means[1],
+                means[2],
+                stds[0],
+                stds[1],
+                stds[2],
+            ]
 
-        mean_std_df.to_csv(means_stds_csv)
+        mean_stds_df.to_csv(save_file)
         print(
             "##### Generated means and stds for training dataset",
             train_index,
@@ -328,6 +340,7 @@ def add_model_prediction_results_to_performance_stats_output(
     model_prediction_df=pd.DataFrame,
     performance_df=pd.DataFrame,
     all_img_df=pd.DataFrame,
+    evaluate_output_csv=str,
 ):
 
     print(
@@ -392,10 +405,16 @@ def add_model_prediction_results_to_performance_stats_output(
         invasive_train_cnt,
     )
 
-    performance_df.to_csv(EVALUATE_OUTPUT_CSV, index=False)
+    performance_df.to_csv(evaluate_output_csv, index=False)
 
 
-def evaluate(dataloader=DataLoader, class_cnt=int, dataset_info=dict):
+def evaluate(
+    device=torch.device,
+    model=models.resnet.ResNet,
+    dataloader=DataLoader,
+    class_cnt=int,
+    dataset_info=dict,
+):
     model.eval()
 
     model_id_list = []
@@ -512,7 +531,8 @@ def evaluate(dataloader=DataLoader, class_cnt=int, dataset_info=dict):
 ##########################################################
 # Main
 
-if __name__ == "__main__":
+
+def main():
 
     ##########################################################
     # Configuration
@@ -562,7 +582,7 @@ if __name__ == "__main__":
             means_stds_csv
         ), "No means_stds.csv file found first run training.py without --evaluate flag."
 
-    EVALUATE_OUTPUT_CSV = "./model_performance_results.csv"
+    evaluate_output_csv = "./model_performance_results.csv"
 
     print("##########################################################")
     print("##### START  #####\n")
@@ -596,7 +616,9 @@ if __name__ == "__main__":
         dataset_info = mc.CUSTOM_DATASETS_INFO[dataset_index]
         train_index = dataset_info["train_id"]
 
-        means_stds = get_means_stds(df, dataset_dir, dataset_info, mean_stds_df)
+        means_stds = get_means_stds(
+            df, dataset_dir, dataset_info, mean_stds_df, means_stds_csv
+        )
 
         data_transform = transforms.Compose(
             [
@@ -644,13 +666,19 @@ if __name__ == "__main__":
             else:
                 print("##### ERROR Could not find model checkpoint", model_path)
 
-            model_prediction_df = evaluate(dataloader, class_cnt, dataset_info)
+            model_prediction_df = evaluate(
+                device, model, dataloader, class_cnt, dataset_info
+            )
             model_prediction_df.to_csv(
                 mc.get_evaluation_path(dataset_info["name"]), index=False
             )
 
             add_model_prediction_results_to_performance_stats_output(
-                dataset_info, model_prediction_df, evaluation_output_df, df
+                dataset_info,
+                model_prediction_df,
+                evaluation_output_df,
+                df,
+                evaluate_output_csv,
             )
 
         else:  # train models
@@ -686,3 +714,7 @@ if __name__ == "__main__":
 
     print("##### END #####\n")
     print("\n##########################################################")
+
+
+if __name__ == "__main__":
+    main()
