@@ -36,6 +36,7 @@ cd [YOUR_WORKSPACE]/larson_et_al_2022
 
 ### 3. Download the Wellington Camera Traps Dataset
 Retrieve the [Wellington Camera Traps](https://lila.science/datasets/wellingtoncameratraps) dataset and metadata from the Labeled Information Library of Alexandria: Biology and Conservation (LILA BC) [website](https://lila.science/).
+
 A. 1. Download and unzip the Wellington Camera Traps images into the data/raw directory.
 ```
 wget -c -P ./data/raw https://lilablobssc.blob.core.windows.net/wellingtoncameratraps/wct_images.zip
@@ -43,6 +44,7 @@ wget -c -P ./data/raw https://lilablobssc.blob.core.windows.net/wellingtoncamera
 or, if difficulties are encountered in downloading the zip file because of its size:
 
 A. 2. a. Download the azcopy command-line utility as described [here](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10).
+
 A. 2. b. Use the azopy util to download images one at a time to the data/raw directory.
 ```
 azcopy cp "https://lilablobssc.blob.core.windows.net/wellington-unzipped/images/*" "./data/raw" --recursive
