@@ -130,6 +130,7 @@ def get_means_stds(
     dataset_info=dict,
     mean_stds_df=pd.DataFrame,
     save_file=str,
+    num_workers=int,
 ):
 
     train_index = dataset_info["train_id"]
@@ -145,7 +146,9 @@ def get_means_stds(
 
     except KeyError:
         dataset = CustomDataset(df, dataset_dir, dataset_info)
-        dataloader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=0)
+        dataloader = DataLoader(
+            dataset, batch_size=32, shuffle=True, num_workers=num_workers
+        )
 
         mean = 0.0
         std = 0.0
@@ -562,6 +565,13 @@ def main():
         "--evaluate", action="store_true", help="Evaluate models with testing datasets"
     )
 
+    parser.add_argument(
+        "--num_workers",
+        type=int,
+        default=0,
+        help="The number of workers to use for the dataloader",
+    )
+
     args = parser.parse_args()
 
     # Check arguments
@@ -575,6 +585,7 @@ def main():
 
     resume_training = args.resume_training
     evaluate_models = args.evaluate
+    num_workers = args.num_workers
 
     means_stds_csv = "./training/means_stds.csv"
     if evaluate_models:
@@ -616,8 +627,37 @@ def main():
         dataset_info = mc.CUSTOM_DATASETS_INFO[dataset_index]
         train_index = dataset_info["train_id"]
 
+        # Note: Getting the number of classes is ugly because several
+        # train/test combinations have different # of classes as a point of research.
+        class_cnt = len(mc.CUSTOM_DATASETS_INFO[train_index]["class_map"])
+        model = get_model(class_cnt)
+        model = model.to(device)  # shifting model to correct device
+
+        # Get the model path and check that it exists
+        model_path = (
+            mc.get_best_model_path(mc.CUSTOM_DATASETS_INFO[train_index]["name"])
+            if evaluate_models
+            else mc.get_checkpoint_path(dataset_info["name"])
+        )
+        print(f"Model path: {model_path}")
+
+        # load checkpoint information if evaluating or restarting training
+        if (resume_training or evaluate) and os.path.exists(model_path):
+            checkpoint = torch.load(model_path)
+            current_epoch = checkpoint["epoch"]
+
+            if current_epoch == mc.NUM_EPOCHS - 1 and resume_training:
+                print("Model already trained for all epochs.")
+                continue  # Model already trained for set # of epochs
+
+            model.load_state_dict(checkpoint["model_state_dict"])
+
+        else:
+            current_epoch = 0
+        print(f"Current epoch: {current_epoch}")
+
         means_stds = get_means_stds(
-            df, dataset_dir, dataset_info, mean_stds_df, means_stds_csv
+            df, dataset_dir, dataset_info, mean_stds_df, means_stds_csv, num_workers
         )
 
         data_transform = transforms.Compose(
@@ -631,13 +671,9 @@ def main():
         )
 
         dataset = CustomDataset(df, dataset_dir, dataset_info, transform=data_transform)
-        dataloader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=0)
-
-        # Note: Getting the number of classes is ugly because several
-        # train/test combinations have different # of classes as a point of research.
-        class_cnt = len(mc.CUSTOM_DATASETS_INFO[train_index]["class_map"])
-        model = get_model(class_cnt)
-        model.to(device)  # shifting model to correct device
+        dataloader = DataLoader(
+            dataset, batch_size=32, shuffle=True, num_workers=num_workers
+        )
 
         # Norouzzadeh et al., 2018, Tabak et al., 2019
         optimizer = optim.SGD(
@@ -646,25 +682,12 @@ def main():
             weight_decay=mc.WEIGHT_DECAY,
             momentum=mc.MOMENTUM,
         )
-        # Norouzzadeh et al., 2018, Tabak et al., 2019
-        criterion = nn.CrossEntropyLoss()
+        if resume_training or evaluate_models:
+            optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
 
         if evaluate_models:  # evaluate models with test datasets
 
-            model_path = mc.get_best_model_path(
-                mc.CUSTOM_DATASETS_INFO[train_index]["name"]
-            )
-            if os.path.exists(model_path):
-                print("##### EVALUATING using model from checkpoint", model_path)
-
-                # load model information from checkpoint
-                checkpoint = torch.load(model_path)
-                model.load_state_dict(checkpoint["model_state_dict"])
-                optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-                current_epoch = checkpoint["epoch"]
-
-            else:
-                print("##### ERROR Could not find model checkpoint", model_path)
+            print("##### EVALUATING model", dataset.name)
 
             model_prediction_df = evaluate(
                 device, model, dataloader, class_cnt, dataset_info
@@ -683,32 +706,18 @@ def main():
 
         else:  # train models
 
-            print("##### STARTING Training model", dataset.name)
-            model_path = mc.get_checkpoint_path(dataset_info["name"])
-            if resume_training and os.path.exists(model_path):
-                print("##### RESUMING training with", model_path)
-
-                # load model information from checkpoint
-                checkpoint = torch.load(model_path)
-                model.load_state_dict(checkpoint["model_state_dict"])
-                optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-                current_epoch = checkpoint["epoch"]
-
-            else:
-                print("##### INITIATING training fresh")
-                current_epoch = 0
+            print("##### TRAINING model", dataset.name)
 
             train(
                 device,
                 model,
                 dataloader,
-                criterion,
+                nn.CrossEntropyLoss(),  # Norouzzadeh et al., 2018, Tabak et al., 2019
                 optimizer,
                 dataset_info,
                 mc.NUM_EPOCHS,
                 current_epoch,
             )
-            print("##### FINISHED Training model", dataset.name)
 
         print("#" * 80)
 
