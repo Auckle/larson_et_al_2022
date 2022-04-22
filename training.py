@@ -335,9 +335,7 @@ def calculate_performance_by_result_type(
         submission[stat + "_cnt"] = stat_sum
 
     if test_invasive_cnt:
-        submission["missed_invasive_rate"] = (
-            df["missed_invasive"].sum()
-        ) / test_invasive_cnt  # todo
+        submission["missed_invasive_rate"] = (df["missed_invasive"].sum()) / test_invasive_cnt
     else:
         submission["missed_invasive_rate"] = None
     print(submission["missed_invasive_rate"], submission["test_invasive_cnt"])
@@ -364,10 +362,10 @@ def add_model_prediction_results_to_performance_stats_output(
     invasive_train_df = train_df[train_df.label_grpd == "INVASIVE"]
     train_invasive_cnt = len(invasive_train_df)
 
-    test_df = all_img_df[all_img_df[dataset_info["db_col"]] == True]  # todo
+    test_df = all_img_df[all_img_df[dataset_info["db_col"]] == True] # todo
     print(test_df.columns, test_df.label_grpd.unique())
     invasive_test_df = test_df[test_df.label_grpd == "INVASIVE"]
-    test_invasive_cnt = len(invasive_test_df)  # todo
+    test_invasive_cnt = len(invasive_test_df) # todo
     print("test_invasive_cnt", test_invasive_cnt)
 
     native_train_cnt = 0
@@ -479,11 +477,11 @@ def evaluate(
             _c, top_1_indices = torch.topk(output, 1)
             temp = real_labels.repeat_interleave(1, dim=0)
             temp = torch.reshape(temp, (int(len(temp) / 1), 1))
-            # print("0.", temp.is_cuda, top_1_indices.is_cuda, real_labels.is_cuda)
+            #print("0.", temp.is_cuda, top_1_indices.is_cuda, real_labels.is_cuda)
             temp = torch.eq(temp, top_1_indices)
             top_1_corrects = torch.sum(temp, dim=1, dtype=bool)
 
-            print("1. ", len(top_1_indices), end="\r")
+            print("1. ", len(top_1_indices), end='\r')
             predicted_labels = torch.squeeze(top_1_indices)
             invasive_labels_imgs = torch.gt(real_labels, 1)
             predicted_invasive_labels_imgs = torch.gt(predicted_labels, 1)
@@ -634,7 +632,7 @@ def main():
     if evaluate_models:
         evaluation_output_df = pd.DataFrame(columns=mc.PERFORMANCE_DF_COLS)
 
-    for dataset_index in datasets_indexes:  # [datasets_indexes[-1]]:
+    for dataset_index in datasets_indexes: #[datasets_indexes[-1]]: 
         print("")
         dataset_info = mc.CUSTOM_DATASETS_INFO[dataset_index]
         train_index = dataset_info["train_id"]
@@ -686,15 +684,11 @@ def main():
                 ]
             )
 
-            dataset = CustomDataset(
-                df, dataset_dir, dataset_info, transform=data_transform
-            )
-            dataloader = DataLoader(
-                dataset, batch_size=32, shuffle=True, drop_last=True, num_workers=4
-            )
+            dataset = CustomDataset(df, dataset_dir, dataset_info, transform=data_transform)
+            dataloader = DataLoader(dataset, batch_size=32, shuffle=True, drop_last=True, num_workers=4)
 
-            # dataset.train_data.to(torch.device("cuda:0"))  # put data into GPU entirely
-            # dataset.train_labels.to(torch.device("cuda:0"))
+            #dataset.train_data.to(torch.device("cuda:0"))  # put data into GPU entirely
+            #dataset.train_labels.to(torch.device("cuda:0"))
 
             model_prediction_df = evaluate(
                 device, model, dataloader, class_cnt, dataset_info
@@ -721,11 +715,12 @@ def main():
                 # load model information from checkpoint
                 checkpoint = torch.load(model_path)
                 current_epoch = checkpoint["epoch"]
-                if current_epoch == mc.NUM_EPOCHS - 1:
-                    print("already trained for ", current_epoch + 1, "epochs")
+                if current_epoch == mc.NUM_EPOCHS-1:
+                    print("already trained for ", current_epoch+1, "epochs")
                     continue
                 model.load_state_dict(checkpoint["model_state_dict"])
                 optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+
 
             else:
                 print("##### INITIATING training fresh")
@@ -745,12 +740,8 @@ def main():
                 ]
             )
 
-            dataset = CustomDataset(
-                df, dataset_dir, dataset_info, transform=data_transform
-            )
-            dataloader = DataLoader(
-                dataset, batch_size=32, shuffle=True, drop_last=True, num_workers=4
-            )
+            dataset = CustomDataset(df, dataset_dir, dataset_info, transform=data_transform)
+            dataloader = DataLoader(dataset, batch_size=32, shuffle=True, drop_last=True, num_workers=4)
             train(
                 device,
                 model,
