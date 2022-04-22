@@ -30,7 +30,7 @@ DATASETS_IN_SAMPLE = (
 )
 
 TRAIN_DATASET_INDEXES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-TEST_DATASET_INDEXES = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]
+TEST_DATASET_INDEXES = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21]
 
 CLASS_MAP_INDIVIDUAL = {
     "EMPTY": 0,
@@ -178,7 +178,7 @@ CUSTOM_DATASETS_INFO = [
         "db_col": "test_a_grpd_all_10_100_1000",
         "train_id": 0,
         "label_col": LABEL_GRPD,
-        "class_list": CLASSES_INDIVIDUAL,
+        "class_list": CLASSES_GROUPED,
         "class_map": CLASS_MAP_GROUPED,
         "test_id": 0,
     },
@@ -366,10 +366,12 @@ PERFORMANCE_DF_COLS = [
     "false_alarm_acc",
     "missed_invasive_cnt",
     "missed_invasive_acc",
+    "missed_invasive_rate",
     "train_cnt",
     "native_train_cnt",
     "invasive_train_cnt",
     "balance_inv_nat_train",
+    "test_invasive_cnt",
 ]
 
 
