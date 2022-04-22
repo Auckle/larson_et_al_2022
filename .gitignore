@@ -8,6 +8,10 @@
 # Specific directories
 ai4eutils/
 cameratraps/
+archive/
+
+# Other
+.vscode/
 
 # Template .gitignore for Python projects
 

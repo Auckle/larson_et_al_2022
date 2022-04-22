@@ -7,34 +7,13 @@ import numpy as np
 import os
 import pandas as pd
 
-
-SET_NAMES_TRAIN_INDI = [
-    "test_b_indi_all_10_100_1000_biome_c",
-    "train_f_indi_10",
-    "train_g_indi_100",
-    "train_h_indi_1000",
-]
-
-SET_NAMES_TRAIN_GRPD = [
-    "test_a_grpd_all_10_100_1000",
-    "train_c_grpd_10",
-    "train_d_grpd_100",
-    "train_e_grpd_1000",
-]
-
-SET_NAMES_TEST_INDI = [
-    "test_b_indi_all_10_100_1000_biome_c",
-    "train_h_indi_1000",
-]
-
-SET_NAMES_TEST_GRPD = ["test_a_grpd_all_10_100_1000", "train_e_grpd_1000"]
-
-
 ##########################################################
 # Functions
 
 
-def print_set_info(set_name=str, label_name=str, db=pd.DataFrame, counts=False):
+def print_set_info(
+    set_name: str, label_name: str, db: pd.DataFrame, counts: False
+) -> None:
     a = db.groupby([set_name, label_name]).size()
     if counts:
         print(a)
@@ -44,12 +23,12 @@ def print_set_info(set_name=str, label_name=str, db=pd.DataFrame, counts=False):
     print("")
 
 
-def print_all_sets(db=pd.DataFrame, counts=False):
+def print_all_sets(db: pd.DataFrame, counts=False) -> None:
     for dataset in mc.CUSTOM_DATASETS_INFO:
         print_set_info(dataset["db_col"], dataset["label_col"], db, counts)
 
 
-def define_training_sets_full(db=pd.DataFrame):
+def define_training_sets_full(db: pd.DataFrame) -> None:
     for site in db.site.unique():
 
         # select all entries for site
@@ -102,7 +81,9 @@ def define_training_sets_full(db=pd.DataFrame):
             ] = False
 
 
-def define_training_sets_10_100_1000(set_names=list, label_name=str, db=pd.DataFrame):
+def define_training_sets_10_100_1000(
+    set_names: list, label_name: str, db: pd.DataFrame
+) -> None:
     for site in db.site.unique():
         site_db = db[db["site"] == site]
 
@@ -179,9 +160,15 @@ def define_training_sets_10_100_1000(set_names=list, label_name=str, db=pd.DataF
             db.loc[(db["org_file"].isin(train_1000)), [set_names[3]]] = True
 
 
-def define_testing_set_10_100_1000(set_names=list, label_name=str, db=pd.DataFrame):
+def define_testing_set_10_100_1000(
+    test_set_names: str, training_set_names: list, label_name: str, db: pd.DataFrame
+) -> None:
+
     db.loc[
-        (db[set_names[1]] == False) & (db[mc.LABEL_GRPD] != "INVASIVE"), [set_names[0]]
+        (db[training_set_names[0]] == False)
+        & (db[training_set_names[1]] == False)
+        & (db[mc.LABEL_GRPD] != "INVASIVE"),
+        [test_set_names[0]],
     ] = True
 
     for site in db.site.unique():
@@ -197,7 +184,10 @@ def define_testing_set_10_100_1000(set_names=list, label_name=str, db=pd.DataFra
             )
 
             # 1% of INVASIVE IMAGES
-            db_1000 = label_db[label_db[set_names[1]] == False]
+            db_1000 = label_db[
+                (label_db[training_set_names[0]] == False)
+                & (label_db[training_set_names[1]] == False)
+            ]  # todo fix
             if db_1000.shape[0] > 1:
                 image_sets = db_1000["org_file"].unique()
                 poss_test_count = len(image_sets)
@@ -207,18 +197,20 @@ def define_testing_set_10_100_1000(set_names=list, label_name=str, db=pd.DataFra
                     image_sets[index] for index in selected_1_percent
                 ]
                 db.loc[
-                    (db["org_file"].isin(invasive_imgs_to_test)), [set_names[0]]
+                    (db["org_file"].isin(invasive_imgs_to_test)), [test_set_names[0]]
                 ] = True
+
+    db.loc[(db[test_set_names[0]] == True), [test_set_names[1]]] = True
 
 
 def filter_set_lg_and_sm_prj_by_classes(
-    db=pd.DataFrame,
-    hedgehog_sites=mc.HEDGEHOG_SITES_FROM_PAPER,
-    lg_set_name=str,
-    sm_set_name=str,
-    starting_set_name=str,
-    classes_to_keep=list,
-):
+    db: pd.DataFrame,
+    hedgehog_sites: mc.HEDGEHOG_SITES_FROM_PAPER,
+    lg_set_name: str,
+    sm_set_name: str,
+    starting_set_name: str,
+    classes_to_keep: list,
+) -> None:
     db[lg_set_name] = db[starting_set_name]
     db.loc[~db.label_indi.isin(classes_to_keep), [lg_set_name]] = False
     db.loc[db.site.isin(hedgehog_sites) & db[lg_set_name] == True, [sm_set_name]] = True
@@ -308,10 +300,22 @@ def main():
     define_training_sets_full(db)
 
     # Set train sets: train_c_grpd_10, train_d_grpd_100, train_e_grpd_1000
-    define_training_sets_10_100_1000(SET_NAMES_TRAIN_GRPD, mc.LABEL_GRPD, db)
+    train_set_names_grpd = [
+        "test_a_grpd_all_10_100_1000",
+        "train_c_grpd_10",
+        "train_d_grpd_100",
+        "train_e_grpd_1000",
+    ]
+    define_training_sets_10_100_1000(train_set_names_grpd, mc.LABEL_GRPD, db)
 
     # Set train sets: train_f_indi_10, train_g_indi_100, train_h_indi_1000
-    define_training_sets_10_100_1000(SET_NAMES_TRAIN_INDI, mc.LABEL_INDI, db)
+    train_set_names_indi = [
+        "test_b_indi_all_10_100_1000_biome_c",
+        "train_f_indi_10",
+        "train_g_indi_100",
+        "train_h_indi_1000",
+    ]
+    define_training_sets_10_100_1000(train_set_names_indi, mc.LABEL_INDI, db)
 
     # set train set: train_i_lg_prj, train_j_sm_prj
     db.train_i_lg_prj = db.train_c_grpd_10
@@ -328,11 +332,17 @@ def main():
     ] = True
 
     # Prepare testing sets
-    # Set test set: test_a_grpd_all_10_100_1000
-    define_testing_set_10_100_1000(SET_NAMES_TEST_GRPD, mc.LABEL_GRPD, db)
 
-    # Set test set: test_b_indi_all_10_100_1000_biome_c
-    define_testing_set_10_100_1000(SET_NAMES_TEST_INDI, mc.LABEL_INDI, db)
+    # Set test set: test_a_grpd_all_10_100_1000 and test_b_indi_all_10_100_1000_biome_c
+    test_set_names = [
+        "test_b_indi_all_10_100_1000_biome_c",
+        "test_a_grpd_all_10_100_1000",
+    ]
+    train_set_names = [
+        "train_h_indi_1000",
+        "train_e_grpd_1000",
+    ]
+    define_testing_set_10_100_1000(test_set_names, train_set_names, mc.LABEL_INDI, db)
 
     # set test_c_indi_biome_ots
     db.loc[

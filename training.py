@@ -130,7 +130,6 @@ def get_means_stds(
     dataset_info=dict,
     mean_stds_df=pd.DataFrame,
     save_file=str,
-    num_workers=int,
 ):
 
     train_index = dataset_info["train_id"]
@@ -146,9 +145,7 @@ def get_means_stds(
 
     except KeyError:
         dataset = CustomDataset(df, dataset_dir, dataset_info)
-        dataloader = DataLoader(
-            dataset, batch_size=32, shuffle=True, num_workers=num_workers
-        )
+        dataloader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=4)
 
         mean = 0.0
         std = 0.0
@@ -157,7 +154,7 @@ def get_means_stds(
         for images, labels, filenames, sites in dataloader:
 
             try:  # cuda
-                torch.set_default_tensor_type("torch.cuda.FloatTensor")
+                # torch.set_default_tensor_type("torch.cuda.FloatTensor")
                 data = images.view(len(images), 3, -1).cuda()
                 mean += data.mean(2).sum(0).cuda()
                 std += data.std(2).sum(0).cuda()
@@ -305,6 +302,7 @@ def calculate_performance_by_result_type(
     train_cnt=int,
     native_train_cnt=int,
     invasive_train_cnt=int,
+    test_invasive_cnt=None,
 ):
 
     balance_inv_nat_train = (
@@ -320,6 +318,7 @@ def calculate_performance_by_result_type(
         "native_train_cnt": native_train_cnt,
         "invasive_train_cnt": invasive_train_cnt,
         "balance_inv_nat_train": balance_inv_nat_train,
+        "test_invasive_cnt": test_invasive_cnt,
     }
 
     test_image_cnt = len(df)
@@ -334,6 +333,14 @@ def calculate_performance_by_result_type(
         stat_sum = df[stat].sum()
         submission[stat + "_acc"] = stat_sum / test_image_cnt
         submission[stat + "_cnt"] = stat_sum
+
+    if test_invasive_cnt:
+        submission["missed_invasive_rate"] = (
+            df["missed_invasive"].sum()
+        ) / test_invasive_cnt  # todo
+    else:
+        submission["missed_invasive_rate"] = None
+    print(submission["missed_invasive_rate"], submission["test_invasive_cnt"])
 
     output_df.loc[len(output_df.index)] = submission
 
@@ -353,6 +360,15 @@ def add_model_prediction_results_to_performance_stats_output(
     train_col = mc.CUSTOM_DATASETS_INFO[dataset_info["train_id"]]["db_col"]
     train_label_col = mc.CUSTOM_DATASETS_INFO[dataset_info["train_id"]]["label_col"]
     train_df = all_img_df[all_img_df[train_col] == True]
+
+    invasive_train_df = train_df[train_df.label_grpd == "INVASIVE"]
+    train_invasive_cnt = len(invasive_train_df)
+
+    test_df = all_img_df[all_img_df[dataset_info["db_col"]] == True]  # todo
+    print(test_df.columns, test_df.label_grpd.unique())
+    invasive_test_df = test_df[test_df.label_grpd == "INVASIVE"]
+    test_invasive_cnt = len(invasive_test_df)  # todo
+    print("test_invasive_cnt", test_invasive_cnt)
 
     native_train_cnt = 0
     invasive_train_cnt = 0
@@ -405,7 +421,8 @@ def add_model_prediction_results_to_performance_stats_output(
         None,
         len(train_df),
         native_train_cnt,
-        invasive_train_cnt,
+        train_invasive_cnt,
+        test_invasive_cnt,
     )
 
     performance_df.to_csv(evaluate_output_csv, index=False)
@@ -439,6 +456,7 @@ def evaluate(
     for images, real_labels, filenames, sites in dataloader:
         with torch.no_grad():
             images = images.to(device)
+            real_labels = real_labels.to(device)
             output = model(images)
             output = torch.exp(output)
 
@@ -461,9 +479,11 @@ def evaluate(
             _c, top_1_indices = torch.topk(output, 1)
             temp = real_labels.repeat_interleave(1, dim=0)
             temp = torch.reshape(temp, (int(len(temp) / 1), 1))
+            # print("0.", temp.is_cuda, top_1_indices.is_cuda, real_labels.is_cuda)
             temp = torch.eq(temp, top_1_indices)
             top_1_corrects = torch.sum(temp, dim=1, dtype=bool)
 
+            print("1. ", len(top_1_indices), end="\r")
             predicted_labels = torch.squeeze(top_1_indices)
             invasive_labels_imgs = torch.gt(real_labels, 1)
             predicted_invasive_labels_imgs = torch.gt(predicted_labels, 1)
@@ -565,13 +585,6 @@ def main():
         "--evaluate", action="store_true", help="Evaluate models with testing datasets"
     )
 
-    parser.add_argument(
-        "--num_workers",
-        type=int,
-        default=0,
-        help="The number of workers to use for the dataloader",
-    )
-
     args = parser.parse_args()
 
     # Check arguments
@@ -585,7 +598,6 @@ def main():
 
     resume_training = args.resume_training
     evaluate_models = args.evaluate
-    num_workers = args.num_workers
 
     means_stds_csv = "./training/means_stds.csv"
     if evaluate_models:
@@ -622,42 +634,13 @@ def main():
     if evaluate_models:
         evaluation_output_df = pd.DataFrame(columns=mc.PERFORMANCE_DF_COLS)
 
-    for dataset_index in datasets_indexes:
+    for dataset_index in datasets_indexes:  # [datasets_indexes[-1]]:
         print("")
         dataset_info = mc.CUSTOM_DATASETS_INFO[dataset_index]
         train_index = dataset_info["train_id"]
 
-        # Note: Getting the number of classes is ugly because several
-        # train/test combinations have different # of classes as a point of research.
-        class_cnt = len(mc.CUSTOM_DATASETS_INFO[train_index]["class_map"])
-        model = get_model(class_cnt)
-        model = model.to(device)  # shifting model to correct device
-
-        # Get the model path and check that it exists
-        model_path = (
-            mc.get_best_model_path(mc.CUSTOM_DATASETS_INFO[train_index]["name"])
-            if evaluate_models
-            else mc.get_checkpoint_path(dataset_info["name"])
-        )
-        print(f"Model path: {model_path}")
-
-        # load checkpoint information if evaluating or restarting training
-        if (resume_training or evaluate) and os.path.exists(model_path):
-            checkpoint = torch.load(model_path)
-            current_epoch = checkpoint["epoch"]
-
-            if current_epoch == mc.NUM_EPOCHS - 1 and resume_training:
-                print("Model already trained for all epochs.")
-                continue  # Model already trained for set # of epochs
-
-            model.load_state_dict(checkpoint["model_state_dict"])
-
-        else:
-            current_epoch = 0
-        print(f"Current epoch: {current_epoch}")
-
-        means_stds = get_means_stds(
-            df, dataset_dir, dataset_info, mean_stds_df, means_stds_csv, num_workers
+        """means_stds = get_means_stds(
+            df, dataset_dir, dataset_info, mean_stds_df, means_stds_csv
         )
 
         data_transform = transforms.Compose(
@@ -670,10 +653,14 @@ def main():
             ]
         )
 
-        dataset = CustomDataset(df, dataset_dir, dataset_info, transform=data_transform)
-        dataloader = DataLoader(
-            dataset, batch_size=32, shuffle=True, num_workers=num_workers
-        )
+        dataset = CustomDataset(df, dataset_dir, dataset_info, transform=data_transform)"""
+        # dataloader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=4)
+
+        # Note: Getting the number of classes is ugly because several
+        # train/test combinations have different # of classes as a point of research.
+        class_cnt = len(mc.CUSTOM_DATASETS_INFO[train_index]["class_map"])
+        model = get_model(class_cnt)
+        model.to(device)  # shifting model to correct device
 
         # Norouzzadeh et al., 2018, Tabak et al., 2019
         optimizer = optim.SGD(
@@ -682,12 +669,49 @@ def main():
             weight_decay=mc.WEIGHT_DECAY,
             momentum=mc.MOMENTUM,
         )
-        if resume_training or evaluate_models:
-            optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        # Norouzzadeh et al., 2018, Tabak et al., 2019
+        criterion = nn.CrossEntropyLoss()
 
         if evaluate_models:  # evaluate models with test datasets
 
-            print("##### EVALUATING model", dataset.name)
+            model_path = mc.get_best_model_path(
+                mc.CUSTOM_DATASETS_INFO[train_index]["name"]
+            )
+            if os.path.exists(model_path):
+                print("##### EVALUATING using model from checkpoint", model_path)
+
+                # load model information from checkpoint
+                checkpoint = torch.load(model_path)
+                current_epoch = checkpoint["epoch"]
+                model.load_state_dict(checkpoint["model_state_dict"])
+                optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+
+            else:
+                print("##### ERROR Could not find model checkpoint", model_path)
+
+            means_stds = get_means_stds(
+                df, dataset_dir, dataset_info, mean_stds_df, means_stds_csv
+            )
+
+            data_transform = transforms.Compose(
+                [
+                    transforms.ColorJitter(),
+                    transforms.RandomCrop(mc.CROP_SIZE),
+                    transforms.RandomHorizontalFlip(),
+                    transforms.ToTensor(),
+                    transforms.Normalize(means_stds[0], means_stds[1]),
+                ]
+            )
+
+            dataset = CustomDataset(
+                df, dataset_dir, dataset_info, transform=data_transform
+            )
+            dataloader = DataLoader(
+                dataset, batch_size=32, shuffle=True, drop_last=True, num_workers=4
+            )
+
+            # dataset.train_data.to(torch.device("cuda:0"))  # put data into GPU entirely
+            # dataset.train_labels.to(torch.device("cuda:0"))
 
             model_prediction_df = evaluate(
                 device, model, dataloader, class_cnt, dataset_info
@@ -706,18 +730,55 @@ def main():
 
         else:  # train models
 
-            print("##### TRAINING model", dataset.name)
+            print("##### STARTING Training model", dataset_info["name"])
+            model_path = mc.get_checkpoint_path(dataset_info["name"])
+            if resume_training and os.path.exists(model_path):
+                print("##### RESUMING training with", model_path)
 
+                # load model information from checkpoint
+                checkpoint = torch.load(model_path)
+                current_epoch = checkpoint["epoch"]
+                if current_epoch == mc.NUM_EPOCHS - 1:
+                    print("already trained for ", current_epoch + 1, "epochs")
+                    continue
+                model.load_state_dict(checkpoint["model_state_dict"])
+                optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+
+            else:
+                print("##### INITIATING training fresh")
+                current_epoch = 0
+
+            means_stds = get_means_stds(
+                df, dataset_dir, dataset_info, mean_stds_df, means_stds_csv
+            )
+
+            data_transform = transforms.Compose(
+                [
+                    transforms.ColorJitter(),
+                    transforms.RandomCrop(mc.CROP_SIZE),
+                    transforms.RandomHorizontalFlip(),
+                    transforms.ToTensor(),
+                    transforms.Normalize(means_stds[0], means_stds[1]),
+                ]
+            )
+
+            dataset = CustomDataset(
+                df, dataset_dir, dataset_info, transform=data_transform
+            )
+            dataloader = DataLoader(
+                dataset, batch_size=32, shuffle=True, drop_last=True, num_workers=4
+            )
             train(
                 device,
                 model,
                 dataloader,
-                nn.CrossEntropyLoss(),  # Norouzzadeh et al., 2018, Tabak et al., 2019
+                criterion,
                 optimizer,
                 dataset_info,
                 mc.NUM_EPOCHS,
                 current_epoch,
             )
+            print("##### FINISHED Training model", dataset.name)
 
         print("#" * 80)
 

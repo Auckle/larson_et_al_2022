@@ -6,6 +6,7 @@ from bokeh.palettes import Colorblind, Category20c, Category20
 from matplotlib.patches import Patch
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
+import numpy as np
 import os
 import pandas as pd
 import pylab as plot
@@ -95,15 +96,15 @@ MODELS_Q2_HATCHES = [
 
 MODELS_Q3 = [
     "train_j_sm_prj_test_f_sm_wo_nvl_sps_sm_prj_spcf",
-    "train_j_sm_prj_test_g_sm_w_nvl_sps",
+    # "train_j_sm_prj_test_g_sm_w_nvl_sps", # thesis version
     "train_i_lg_prj_test_d_lg_wo_nvl_sps_lg_prj_spcf",
-    "train_i_lg_prj_test_e_lg_w_nvl_sps",
+    # "train_i_lg_prj_test_e_lg_w_nvl_sps", # thesis version
 ]
 MODELS_Q3_HATCHES = [
     None,
-    "x",
+    # "x", # thesis version
     None,
-    "x",
+    # "x", # thesis version
 ]
 MODEL_NAMES_LEG_Q2_and_Q3 = {
     "train_b_indi_all_test_b_indi_all_10_100_1000_biome_c": "13 Individual",
@@ -254,6 +255,7 @@ def stat_by_training_images(
     legend_title=None,
     marker_size=MARKER_SIZE,
     linewidth=LINE_WIDTH,
+    draw_reg_line=False,
 ):
 
     if not x_label:
@@ -304,6 +306,24 @@ def stat_by_training_images(
         )
 
         legend_label_attached = True
+
+    if draw_reg_line:
+        # obtain m (slope) and b(intercept) of linear regression line
+        x = df[x_stat]
+        if x_ax_percent:
+            x = [num * 100 for num in x]
+        y = df[y_stat]
+        if y_ax_percent:
+            y = [num * 100 for num in y]
+        m, b = np.polyfit(x, y, 1)
+
+        print("m", m, "b", b)
+        print(type(m), type(x), type(b))
+
+        xseq = np.linspace(min(x), max(x), num=100)
+
+        # add linear regression line to scatterplot
+        ax.plot(xseq, m * xseq + b, color="k", lw=1)
 
     if show_legend:
         ax.legend(
@@ -450,6 +470,7 @@ def draw_legend(
     legend_patches = []
 
     for group_name, group_index in zip(group_names, group_indexes):
+        print(group_name, group_index)
         legend_patches = draw_legend_group(
             patches,
             model_names,
@@ -490,7 +511,7 @@ def make_figure_stats_v_invs_natv_balance_in_train_df(df=pd.DataFrame, png_path=
     x_col = "balance_inv_nat_train"
 
     y_labels = ["Top-1 Accuracy", "False Alarm Rate", "Missed Invasive Rate"]
-    y_cols = ["top_1_correct_acc", "false_alarm_acc", "missed_invasive_acc"]
+    y_cols = ["top_1_correct_acc", "false_alarm_acc", "missed_invasive_rate"]
     y_ax_percent = True
 
     marker_grp = "o"
@@ -579,10 +600,10 @@ def make_figure_false_alarm_and_missed_invasive_v_top_1_acc(
     x_ax_percent = True
 
     y_labels = ["False Alarm Rate", "Missed Invasive Rate"]
-    y_cols = ["false_alarm_acc", "missed_invasive_acc"]
+    y_cols = ["false_alarm_acc", "missed_invasive_rate"]
     y_ax_percent = True
 
-    ax_limts = [None, None, 37, -2]
+    ax_limts = [None, None, 31, -2]
 
     face_color = "black"
     marker = "x"
@@ -615,6 +636,7 @@ def make_figure_false_alarm_and_missed_invasive_v_top_1_acc(
             y_ax_percent=y_ax_percent,
             limits=ax_limts,
             show_legend=sb_plt_show_leg,
+            draw_reg_line=True,
         )
 
     if png_path:
@@ -684,6 +706,7 @@ def make_figure_top_k_train_df_cnt(df=pd.DataFrame, png_path=str):
         legend_label=leg_label_native,
         legend_title=PLOT_A_0_LEGEND_TITLE,
         marker_size=MARKER_SIZE_2x1_PLT,
+        draw_reg_line=True,
     )
 
     # Invasive
@@ -704,6 +727,7 @@ def make_figure_top_k_train_df_cnt(df=pd.DataFrame, png_path=str):
         y_ax_percent=True,
         show_legend=False,
         legend_label=leg_label_invasive,
+        draw_reg_line=True,
     )
 
     # Top 5 recall
@@ -727,6 +751,7 @@ def make_figure_top_k_train_df_cnt(df=pd.DataFrame, png_path=str):
         hide_y_lable=True,
         show_legend=True,
         legend_label=leg_label_native,
+        draw_reg_line=True,
     )
 
     # Invasive
@@ -748,6 +773,7 @@ def make_figure_top_k_train_df_cnt(df=pd.DataFrame, png_path=str):
         hide_y_lable=True,
         show_legend=True,
         legend_label=leg_label_invasive,
+        draw_reg_line=True,
     )
 
     legend = ax2.legend(
@@ -859,10 +885,11 @@ def make_figure_all_stats_of_models(
 
             elif legend_type == "Q3":
                 group_names = [
-                    "Models Without Novel Species",
-                    "Models With Novel Species",
+                    "Models"
+                    # "Models Without Novel Species", # thesis version
+                    # "Models With Novel Species", # thesis version
                 ]
-                group_indexes = [range(0, 4, 2), range(1, 4, 2)]
+                group_indexes = [range(0, 2)]  # [range(0, 4, 2)] # , range(1, 4, 2)]
                 draw_legend(
                     df,
                     ax,
@@ -933,7 +960,7 @@ def main():
     save_path = get_fig_path("top_k_train_df_cnt", output_dir, figure_prefix)
     make_figure_top_k_train_df_cnt(df, save_path)
 
-    stats = ["top_1_correct_acc", "false_alarm_acc", "missed_invasive_acc"]
+    stats = ["top_1_correct_acc", "false_alarm_acc", "missed_invasive_rate"]
     labels = ["Top-1 Accuracy", "False Alarm Rate", "Missed Invasive Rate"]
 
     save_path = get_fig_path("all_stats_Q1_models_grp_v_ind", output_dir, figure_prefix)
