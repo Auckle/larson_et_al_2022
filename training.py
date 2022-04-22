@@ -639,23 +639,6 @@ def main():
         dataset_info = mc.CUSTOM_DATASETS_INFO[dataset_index]
         train_index = dataset_info["train_id"]
 
-        """means_stds = get_means_stds(
-            df, dataset_dir, dataset_info, mean_stds_df, means_stds_csv
-        )
-
-        data_transform = transforms.Compose(
-            [
-                transforms.ColorJitter(),
-                transforms.RandomCrop(mc.CROP_SIZE),
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(means_stds[0], means_stds[1]),
-            ]
-        )
-
-        dataset = CustomDataset(df, dataset_dir, dataset_info, transform=data_transform)"""
-        # dataloader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=4)
-
         # Note: Getting the number of classes is ugly because several
         # train/test combinations have different # of classes as a point of research.
         class_cnt = len(mc.CUSTOM_DATASETS_INFO[train_index]["class_map"])

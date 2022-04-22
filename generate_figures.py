@@ -643,10 +643,10 @@ def make_figure_false_alarm_and_missed_invasive_v_top_1_acc(
         plt.savefig(png_path)
 
 
-def make_figure_top_k_train_df_cnt(df=pd.DataFrame, png_path=str):
+def make_figure_top_k_train_df_cnt(df=pd.DataFrame, png_path=str, v_thesis=bool):
     configure_matplt(2)
 
-    model_names = ALL_MODELS
+    model_names = ALL_MODELS if v_thesis else MODELS_W_MATCHING_TRAIN_AND_TEST_LABELS
     group_by = "CLASS"
 
     linewidth = 1
@@ -937,6 +937,9 @@ def main():
         default=None,
         help="Prefix to add to saved figure file names.",
     )
+    parser.add_argument(
+        "--v_thesis", action="store_true", help="Create figure for thesis"
+    )
     args = parser.parse_args()
 
     # Check arguments
@@ -944,6 +947,7 @@ def main():
     assert os.path.exists(output_dir), output_dir + " does not exist"
 
     figure_prefix = args.figure_prefix
+    v_thesis = args.v_thesis
 
     df = pd.read_csv("./model_performance_results.csv")
 
@@ -958,7 +962,7 @@ def main():
     make_figure_false_alarm_and_missed_invasive_v_top_1_acc(df, save_path)
 
     save_path = get_fig_path("top_k_train_df_cnt", output_dir, figure_prefix)
-    make_figure_top_k_train_df_cnt(df, save_path)
+    make_figure_top_k_train_df_cnt(df, save_path, v_thesis)
 
     stats = ["top_1_correct_acc", "false_alarm_acc", "missed_invasive_rate"]
     labels = ["Top-1 Accuracy", "False Alarm Rate", "Missed Invasive Rate"]
