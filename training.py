@@ -130,6 +130,7 @@ def get_means_stds(
     dataset_info=dict,
     mean_stds_df=pd.DataFrame,
     save_file=str,
+    num_workers=int,
 ):
 
     train_index = dataset_info["train_id"]
@@ -145,7 +146,7 @@ def get_means_stds(
 
     except KeyError:
         dataset = CustomDataset(df, dataset_dir, dataset_info)
-        dataloader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=4)
+        dataloader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=num_workers)
 
         mean = 0.0
         std = 0.0
@@ -583,6 +584,13 @@ def main():
         "--evaluate", action="store_true", help="Evaluate models with testing datasets"
     )
 
+    parser.add_argument(
+        "--num_workers",
+        type=int,
+        default=0,
+        help="The number of workers to use for the dataloader",
+    )
+
     args = parser.parse_args()
 
     # Check arguments
@@ -596,6 +604,7 @@ def main():
 
     resume_training = args.resume_training
     evaluate_models = args.evaluate
+    num_workers = args.num_workers
 
     means_stds_csv = "./training/means_stds.csv"
     if evaluate_models:
@@ -671,7 +680,7 @@ def main():
                 print("##### ERROR Could not find model checkpoint", model_path)
 
             means_stds = get_means_stds(
-                df, dataset_dir, dataset_info, mean_stds_df, means_stds_csv
+                df, dataset_dir, dataset_info, mean_stds_df, means_stds_csv, num_workers
             )
 
             data_transform = transforms.Compose(
@@ -685,7 +694,7 @@ def main():
             )
 
             dataset = CustomDataset(df, dataset_dir, dataset_info, transform=data_transform)
-            dataloader = DataLoader(dataset, batch_size=32, shuffle=True, drop_last=True, num_workers=4)
+            dataloader = DataLoader(dataset, batch_size=32, shuffle=True, drop_last=True, num_workers=num_workers)
 
             #dataset.train_data.to(torch.device("cuda:0"))  # put data into GPU entirely
             #dataset.train_labels.to(torch.device("cuda:0"))
@@ -727,7 +736,7 @@ def main():
                 current_epoch = 0
 
             means_stds = get_means_stds(
-                df, dataset_dir, dataset_info, mean_stds_df, means_stds_csv
+                df, dataset_dir, dataset_info, mean_stds_df, means_stds_csv, num_workers
             )
 
             data_transform = transforms.Compose(
@@ -741,7 +750,7 @@ def main():
             )
 
             dataset = CustomDataset(df, dataset_dir, dataset_info, transform=data_transform)
-            dataloader = DataLoader(dataset, batch_size=32, shuffle=True, drop_last=True, num_workers=4)
+            dataloader = DataLoader(dataset, batch_size=32, shuffle=True, drop_last=True, num_workers=num_workers)
             train(
                 device,
                 model,
