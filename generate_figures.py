@@ -308,21 +308,19 @@ def stat_by_training_images(
         legend_label_attached = True
 
     if draw_reg_line:
-        # obtain m (slope) and b(intercept) of linear regression line
+       
         x = df[x_stat]
         if x_ax_percent:
             x = [num * 100 for num in x]
         y = df[y_stat]
         if y_ax_percent:
             y = [num * 100 for num in y]
+        
+        # obtain m (slope) and b(intercept) of linear regression line
         m, b = np.polyfit(x, y, 1)
 
-        print("m", m, "b", b)
-        print(type(m), type(x), type(b))
-
-        xseq = np.linspace(min(x), max(x), num=100)
-
         # add linear regression line to scatterplot
+        xseq = np.linspace(min(x), max(x), num=100)
         ax.plot(xseq, m * xseq + b, color="k", lw=1)
 
     if show_legend:
@@ -338,7 +336,7 @@ def stat_by_training_images(
 
     ax.set_xlabel(
         x_label, labelpad=plt.rcParams["font.size"]
-    )  # print(plt.rcParams["font.size"])
+    )
     ax.set_ylabel(y_label)
     if hide_y_lable:
         ax.set_ylabel("")
@@ -470,7 +468,6 @@ def draw_legend(
     legend_patches = []
 
     for group_name, group_index in zip(group_names, group_indexes):
-        print(group_name, group_index)
         legend_patches = draw_legend_group(
             patches,
             model_names,
