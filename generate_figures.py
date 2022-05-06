@@ -912,6 +912,53 @@ def make_figure_all_stats_of_models(
     plt.savefig(png_path, bbox_inches="tight")
 
 
+def make_figure_class_cnts_before_after_megadector() -> None:
+    
+    df_path = "./figures/j_larson_thesis_journal_tables_v1 _figure_5_class_counts.csv"
+    if not os.path.exists(df_path): 
+        print(f"WARNING: Could not find {df_path} for Figure 5")
+        return
+    df = pd.read_csv(df_path)
+
+    fig, ax = plt.subplots(figsize=(3.5 * FIG_SIZE_MULTIPLIER, 2.5 * FIG_SIZE_MULTIPLIER))
+
+    # set subplot background styles
+    ax.set_facecolor(PLOT_BACKGROUND_COLOR)
+    ax.grid(linestyle=PLOT_GRID_STYLE)
+
+    bar_plt = sns.barplot(
+            x="Count",
+            y="Class",
+            data=df,
+            ax=ax,
+            orient='h',
+            hue="Time", 
+            palette="Greys",
+            edgecolor="black",
+        )
+
+    legend = ax.legend(
+        loc="lower right",
+        borderaxespad=LEG_BORDER_AX_PAD_B,
+        borderpad=LEG_BORDER_PAD,
+        fancybox=LEG_FANCY_BOX,
+        shadow=LEG_SHADOW,
+        labelspacing=LEG_LABEL_SPACING,
+        handlelength=LEG_HANDLE_LENGTH,
+    )
+
+    ax.get_xaxis().set_major_formatter(
+    mtick.FuncFormatter(lambda x, p: format(int(x), ',')))
+
+    # add values atop the bars
+    ax.bar_label(ax.containers[0], padding=5)
+    ax.bar_label(ax.containers[1], padding=5)
+
+
+    plt.savefig("figures/figure_5_class_cnts.png", bbox_inches="tight")
+    
+    
+
 ##########################################################
 # Main
 
@@ -987,6 +1034,8 @@ def main():
     make_figure_all_stats_of_models(
         df, save_path, MODELS_Q4, stats, labels, legend_subplot=1, legend_type="Q4"
     )
+
+    make_figure_class_cnts_before_after_megadector()
 
 
 if __name__ == "__main__":
